@@ -43,11 +43,18 @@ dev.off()
 ## identify lakes that have slopes different than zero
 ## by using 1.96*SE of each BLUP
 
-#set blup equal to which model you want to validate
+# set blup equal to which model you want to validate
 blup = blup.tn.stand
+# extract SE from random effects
+test = ranef(tn.model.stand, condVar=TRUE)
 
 #extract blup SE using the se.ranef function
-blup.se = se.ranef(tn.model.stand)
+#change model name to which model you are evaluating
+model = tn.model.stand
+blup.se = se.ranef(model)
+blup.se = data.frame(intercepts = blup.se$lagoslakeid[,1], 
+                     slopes = 100*blup.se$lagoslakeid[,2], 
+                     lagoslakeid = row.names(blup.se$lagoslakeid))
 blup.low = list()
 blup.high = list()
 n.diff.mean = list()
@@ -57,8 +64,8 @@ prop.diff.zero = c()
 for (i in 1:2) {
   blup.low[[i]] = as.numeric(blup[,i] - (1.96*blup.se[,i]))
   blup.high[[i]] = as.numeric(blup[,i] + (1.96*blup.se[,i]))
-  grand.low = as.numeric(fixef(tn.model)[i])-(1.96*as.numeric(se.fixef(tn.model)[i]))
-  grand.high = as.numeric(fixef(tn.model)[i])+(1.96*as.numeric(se.fixef(tn.model)[i]))
+  grand.low = as.numeric(fixef(model)[i])-(1.96*as.numeric(se.fixef(model)[i]))
+  grand.high = as.numeric(fixef(model)[i])+(1.96*as.numeric(se.fixef(model)[i]))
   n.diff.mean[[i]] =  (blup.low[[i]]>=grand.low&blup.low[[i]]<=grand.high)|(blup.high[[i]]>=grand.low&blup.high[[i]]<=grand.high)|(blup.low[[i]]<=grand.low&blup.high[[i]]>=grand.high)
   n.diff.zero[[i]]  = blup.low[[i]]>0|blup.high[[i]]<0
   prop.non.overlap[i]=length(which(n.diff.mean[[i]]==FALSE))/length(n.diff.mean[[i]])
