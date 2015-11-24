@@ -18,26 +18,35 @@ blup.tn.stand = coef(tn.model.stand)
 blup.tp.stand = coef(tp.model.stand)
 blup.tntp.stand = coef(tntp.model.stand)
 
-## plot change in TN vs change in TP
+## turn random coefficient list into a dataframe
+## also express BLUPs as a percent by multiplying by 100
 
-plot(blup.tn.stand$lagoslakeid[,2]~blup.tp.stand$lagoslakeid[,2], 
-     xlab = "% Change in TP per year", ylab = "% Change in TN per year")
-abline(0,1)
-abline(h=0, col = "red")
-abline(v=0, col = "red")
+blup.tn.stand = data.frame(intercepts = blup.tn.stand$lagoslakeid[[1]], 
+                           slopes = 100*blup.tn.stand$lagoslakeid[[2]],
+                           lagoslakeid = row.names(blup.tn.stand$lagoslakeid))
+blup.tp.stand = data.frame(intercepts = blup.tp.stand$lagoslakeid[[1]], 
+                           slopes = 100*blup.tp.stand$lagoslakeid[[2]],
+                           lagoslakeid = row.names(blup.tp.stand$lagoslakeid))
+blup.tntp.stand = data.frame(intercepts = blup.tntp.stand$lagoslakeid[[1]], 
+                           slopes = 100*blup.tntp.stand$lagoslakeid[[2]],
+                           lagoslakeid = row.names(blup.tntp.stand$lagoslakeid))
+
 
 ## create a histogram of slopes for the change in TP and TN
 pdf("hist_TN_TP_change.pdf")
-hist(blup.tn.stand$lagoslakeid[,2], breaks = 20, col=rgb(.2,.5,.5,.5), 
+hist(blup.tn.stand$slopes, breaks = 20, col=rgb(.2,.5,.5,.5), 
      ylim = c(0,25), main = "", xlab = "% Change per year", ylab = "Number of lakes")
-hist(blup.tp.stand$lagoslakeid[,2], breaks = 20, col=rgb(.5,.2,.2,0.5), add = TRUE)
+hist(blup.tp.stand$slopes, breaks = 20, col=rgb(.5,.2,.2,0.5), add = TRUE)
 legend(0.03, 20, c("TN", "TP"), fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5)))
 dev.off()
 
 ## identify lakes that have slopes different than zero
 ## by using 1.96*SE of each BLUP
 
-blup = coef(tn.model.stand)
+#set blup equal to which model you want to validate
+blup = blup.tn.stand
+
+#extract blup SE using the se.ranef function
 blup.se = se.ranef(tn.model.stand)
 blup.low = list()
 blup.high = list()
@@ -46,8 +55,8 @@ n.diff.zero = list()
 prop.non.overlap = c()
 prop.diff.zero = c()
 for (i in 1:2) {
-  blup.low[[i]] = as.numeric(blup$lagoslakeid[,i] - (1.96*blup.se$lagoslakeid[,i]))
-  blup.high[[i]] = as.numeric(blup$lagoslakeid[,i] + (1.96*blup.se$lagoslakeid[,i]))
+  blup.low[[i]] = as.numeric(blup[,i] - (1.96*blup.se[,i]))
+  blup.high[[i]] = as.numeric(blup[,i] + (1.96*blup.se[,i]))
   grand.low = as.numeric(fixef(tn.model)[i])-(1.96*as.numeric(se.fixef(tn.model)[i]))
   grand.high = as.numeric(fixef(tn.model)[i])+(1.96*as.numeric(se.fixef(tn.model)[i]))
   n.diff.mean[[i]] =  (blup.low[[i]]>=grand.low&blup.low[[i]]<=grand.high)|(blup.high[[i]]>=grand.low&blup.high[[i]]<=grand.high)|(blup.low[[i]]<=grand.low&blup.high[[i]]>=grand.high)
