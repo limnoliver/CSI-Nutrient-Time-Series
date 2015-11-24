@@ -160,7 +160,6 @@ for (i in 1:length(modern.15$lagoslakeid)){
   modern.15$tn_tp_umol_stand[i] = (modern.15$tn_tp_umol[i] - modern.15$tn_tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])])/modern.15$tn_tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])] 
 }
 
-
 ## run models with standardized data to make slopes directly comparable
 tn.model.stand = lmer(tn_umol_stand ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
 tn.model.stand.int = lmer(tn_umol_stand ~ sampleyear_cor + (1|lagoslakeid), data = modern.15, REML=FALSE)
@@ -168,14 +167,12 @@ tp.model.stand = lmer(tp_umol_stand ~ sampleyear_cor + (sampleyear_cor|lagoslake
 tntp.model.stand = lmer(tn_tp_umol_stand ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
 
 tn.model.stand.uncorr = lmer(tn_umol_stand ~ sampleyear_cor + (1|lagoslakeid) + (0+sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
-coef(tn.model.stand)
 
 ## extract random coefficients
 
 blup.tn.stand = coef(tn.model.stand)
 blup.tp.stand = coef(tp.model.stand)
 blup.tntp.stand = coef(tntp.model.stand)
-
 
 ## plot change in TN vs change in TP
 
@@ -192,7 +189,9 @@ hist(blup.tn.stand$lagoslakeid[,2], breaks = 20, col=rgb(.2,.5,.5,.5),
 hist(blup.tp.stand$lagoslakeid[,2], breaks = 20, col=rgb(.5,.2,.2,0.5), add = TRUE)
 legend(0.03, 20, c("TN", "TP"), fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5)))
 dev.off()
+
 ## identify lakes that have slopes different than zero
+## by using 1.96*SE of each BLUP
 
 blup = coef(tn.model.stand)
 blup.se = se.ranef(tn.model.stand)
@@ -260,7 +259,9 @@ points(blup.tn.stand$lagoslakeid[,2][tp.diff.zero==TRUE]~blup.tp.stand$lagoslake
 points(blup.tn.stand$lagoslakeid[,2][tn.diff.zero==TRUE & tp.diff.zero==TRUE]~blup.tp.stand$lagoslakeid[,2][tn.diff.zero==TRUE& tp.diff.zero==TRUE], 
        col = rgb(.2,.2,.2,.5), pch=16, cex = 1.5)
 
-plot()
+#######################
+## Model validation
+#######################
 
 ## create individual linear models to validate mixed model estimates
 lakes = unique(modern.15$lagoslakeid)
@@ -291,12 +292,19 @@ hist(lmer.vs.lm$lm.slopes, col = rgb(.2,.2,.2, .5), breaks = 20, add = TRUE)
 plot(intercepts~lm.intercepts, data=lmer.vs.lm)
 abline(0,1)
 
-## use package RLRsim to test random effects
+## Test H0: is the variance of the random effect == 0?
+## uses package RLRsim to test random effects
+
 install.packages("RLRsim")
 library(RLRsim)
+
+# mA is the full model
 mA = lmer(tn_umol_stand~sampleyear_cor + (1|lagoslakeid) + (0+sampleyear_cor|lagoslakeid), data = modern.15)
+# m0 is the full model minus the effect being tested
 m0 = update(mA, . ~ . - (0+sampleyear_cor|lagoslakeid))
+# m.slope is the model with only the effect being tested
 m.slope = update(mA, . ~ . - (1|lagoslakeid))
+# note that the exctRLRT function must list models in specific order
 test = exactRLRT(m.slope, mA, m0)
 
 plot(lm.slopes~lm.intercepts, data=lmer.vs.lm)
