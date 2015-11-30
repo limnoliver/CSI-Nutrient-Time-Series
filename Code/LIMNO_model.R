@@ -44,13 +44,13 @@ dev.off()
 ## by using 1.96*SE of each BLUP
 
 # set blup equal to which model you want to validate
-blup = blup.tn.stand
+blup = blup.tp.stand
 # extract SE from random effects
-test = ranef(tn.model.stand, condVar=TRUE)
+test = ranef(tp.model.stand, condVar=TRUE)
 
 #extract blup SE using the se.ranef function
 #change model name to which model you are evaluating
-model = tn.model.stand
+model = tp.model.stand
 blup.se = se.ranef(model)
 blup.se = data.frame(intercepts = blup.se$lagoslakeid[,1], 
                      slopes = 100*blup.se$lagoslakeid[,2], 
@@ -96,29 +96,65 @@ points(blup.tn.stand$lagoslakeid[,2][tp.diff.zero==TRUE]~blup.tp.stand$lagoslake
        col = rgb(.5,.2,.5, .5), pch=16, cex=1.5)
 points(blup.tn.stand$lagoslakeid[,2][tn.diff.zero==TRUE & tp.diff.zero==TRUE]~blup.tp.stand$lagoslakeid[,2][tn.diff.zero==TRUE& tp.diff.zero==TRUE], 
        col = rgb(.2,.2,.2,.5), pch=16, cex = 1.5)
+
+
 dev.off()
 
 # Create a map that plots change by location
+locations = data.lake.specific[,c(1,3,4)]
+tn.blups = merge(blup.tn.stand, locations, by = "lagoslakeid", all.x=TRUE)
+tp.blups = merge(blup.tp.stand, locations, by = "lagoslakeid", all.x=TRUE)
 
 require(maps)
 
+pdf("Change_TN_TP_location.pdf")
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
                                   "Indiana","Michigan","Ohio", "Pennsylvania","New York",
                                   "New Jersey", "Connecticut","Rhode Island","Massachusetts",
                                   "Vermont", "New Hampshire","Maine"), fill = TRUE,col = "gray")
-tn.blups = data.frame(lagoslakeid = rownames(blup.tn.stand$lagoslakeid), intercepts = blup.tn.stand$lagoslakeid[[1]], slopes = blup.tn.stand$lagoslakeid[[2]])
-locations = data.lake.specific[,c(1,3,4)]
-tn.blups = merge(tn.blups, locations, by = "lagoslakeid", all.x=TRUE)
-tp.blups = data.frame(lagoslakeid = rownames(blup.tp.stand$lagoslakeid), intercepts = blup.tp.stand$lagoslakeid[[1]], slopes = blup.tp.stand$lagoslakeid[[2]])
 
 #first plot points where TN is different from zero
 points(tn.blups$nhd_long[tn.diff.zero==TRUE], tn.blups$nhd_lat[tn.diff.zero==TRUE],
-       col = rgb(.2,.5,.5, .5), pch=16, cex = 1.5)
-points(blup.tn.stand$lagoslakeid[,2][tp.diff.zero==TRUE]~blup.tp.stand$lagoslakeid[,2][tp.diff.zero==TRUE], 
-       col = rgb(.5,.2,.5, .5), pch=16, cex=1.5)
-points(blup.tn.stand$lagoslakeid[,2][tn.diff.zero==TRUE & tp.diff.zero==TRUE]~blup.tp.stand$lagoslakeid[,2][tn.diff.zero==TRUE& tp.diff.zero==TRUE], 
-       col = rgb(.2,.2,.2,.5), pch=16, cex = 1.5)
+       col = rgb(.2,.5,.5, .5), pch=16)
+points(tp.blups$nhd_long[tp.diff.zero==TRUE], tp.blups$nhd_lat[tp.diff.zero==TRUE], 
+       col = rgb(.5,.2,.5, .5), pch=16)
+points(tn.blups$nhd_long[tn.diff.zero==TRUE & tp.diff.zero==TRUE], tn.blups$nhd_lat[tn.diff.zero==TRUE & tp.diff.zero==TRUE], 
+       col = rgb(.2,.2,.2,.5), pch=16)
+points(tn.blups$nhd_long[tp.diff.zero==FALSE & tn.diff.zero==FALSE], tn.blups$nhd_lat[tp.diff.zero==FALSE & tn.diff.zero==FALSE])
+legend(-83, 49, c("TN", "TP", "TN & TP"), fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5), rgb(.2,.2,.2,.5)))
+dev.off()
 
+## Create a map that shows positive/negative change
+
+pdf("TN_directional_change.pdf")
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = TRUE,col = "gray")
+
+#first plot points where TN is different from zero
+points(tn.blups$nhd_long[tn.diff.zero==TRUE & tn.blups$slopes>0], tn.blups$nhd_lat[tn.diff.zero==TRUE & tn.blups$slopes>0],
+       col = rgb(.1,.5,.1, .5), pch=16)
+points(tn.blups$nhd_long[tn.diff.zero==TRUE & tn.blups$slopes<0], tn.blups$nhd_lat[tn.diff.zero==TRUE & tn.blups$slopes<0],
+       col = rgb(0,.1,.5, .5), pch=16)
+points(tn.blups$nhd_long[tn.diff.zero==FALSE], tn.blups$nhd_lat[tn.diff.zero==FALSE])
+legend(-83, 49, c("Positive", "Negative"), fill= c(rgb(.1,.5,.1,.5), rgb(0,.1,.5,0.5)))
+dev.off()
+
+pdf("TP_directional_change.pdf")
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = TRUE,col = "gray")
+
+#first plot points where tp is different from zero
+points(tp.blups$nhd_long[tp.diff.zero==TRUE & tp.blups$slopes>0], tp.blups$nhd_lat[tp.diff.zero==TRUE & tp.blups$slopes>0],
+       col = rgb(.1,.5,.1, .5), pch=16)
+points(tp.blups$nhd_long[tp.diff.zero==TRUE & tp.blups$slopes<0], tp.blups$nhd_lat[tp.diff.zero==TRUE & tp.blups$slopes<0],
+       col = rgb(0,.1,.5, .5), pch=16)
+points(tp.blups$nhd_long[tp.diff.zero==FALSE], tp.blups$nhd_lat[tp.diff.zero==FALSE])
+legend(-83, 49, c("Positive", "Negative"), fill= c(rgb(.1,.5,.1,.5), rgb(0,.1,.5,0.5)))
+dev.off()
 #######################
 ## Model validation
 #######################
