@@ -104,7 +104,7 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 intra.annual.tntp = aggregate(stoich.summer$tn_tp_umol, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 intra.annual.tn = aggregate(stoich.summer$tn_umol, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 intra.annual.tp = aggregate(stoich.summer$tp_umol, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
-
+intra.annual.secchi = aggregate(stoich.summer$secchi, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x), sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 year.means.tntp = data.frame(lagoslakeid = intra.annual.tntp$lagoslakeid, 
                         sampleyear = intra.annual.tntp$sampleyear, 
                         tn_tp_umol = intra.annual.tntp$x[,1], 
@@ -123,12 +123,19 @@ year.means.tp = data.frame(lagoslakeid = intra.annual.tp$lagoslakeid,
                            sd = intra.annual.tp$x[,2], 
                            covar = intra.annual.tp$x[,3], 
                            nobs = intra.annual.tp$x[,4])
+year.means.secchi = data.frame(lagoslakeid = intra.annual.secchi$lagoslakeid, 
+                           sampleyear = intra.annual.secchi$sampleyear, 
+                           secchi = intra.annual.secchi$x[,1], 
+                           sd = intra.annual.secchi$x[,2], 
+                           covar = intra.annual.secchi$x[,3], 
+                           nobs = intra.annual.secchi$x[,4])
 
 year.means = data.frame(lagoslakeid = year.means.tntp$lagoslakeid, 
                         sampleyear = year.means.tntp$sampleyear, 
                         tn_umol = year.means.tn$tn_umol,
                         tp_umol = year.means.tp$tp_umol,
-                        tn_tp_umol = year.means.tntp$tn_tp_umol, 
+                        tn_tp_umol = year.means.tntp$tn_tp_umol,
+                        secchi = year.means.secchi$secchi,
                         nobs = year.means.tntp$nobs)
 #limit analysis to only 1990-present
 modern = year.means[year.means$sampleyear > 1989, ]
@@ -143,11 +150,6 @@ modern.15 = modern[modern$lagoslakeid %in% duration$Group.1[duration$x[,4]>=15],
 # create a mixed model where the nutrient is the response, year is the 
 # the predictor, and slopes and intercepts are allowed to vary by lake (grouping)
 
-library(lme4)
-library(MuMIn)
-library(arm)
-library(effects)
-
 modern.15$sampleyear_cor = modern.15$sampleyear - 1990
 
 ## create a column where tn, tp, tn:tp are standardized by the 
@@ -158,5 +160,5 @@ for (i in 1:length(modern.15$lagoslakeid)){
   modern.15$tn_umol_stand[i] = (modern.15$tn_umol[i] - modern.15$tn_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])])/modern.15$tn_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])] 
   modern.15$tp_umol_stand[i] = (modern.15$tp_umol[i] - modern.15$tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])])/modern.15$tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])] 
   modern.15$tn_tp_umol_stand[i] = (modern.15$tn_tp_umol[i] - modern.15$tn_tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])])/modern.15$tn_tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])] 
+  modern.15$secchi_stand[i] = (modern.15$secchi[i] - modern.15$secchi[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])])/modern.15$secchi[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])] 
 }
-
