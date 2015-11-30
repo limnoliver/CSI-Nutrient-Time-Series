@@ -231,7 +231,7 @@ install.packages("RLRsim")
 library(RLRsim)
 
 # mA is the full model
-mA = lmer(tn_umol_stand~sampleyear_cor + (1|lagoslakeid) + (0+sampleyear_cor|lagoslakeid), data = modern.15)
+mA = lmer(tp_umol_stand~sampleyear_cor + (1|lagoslakeid) + (0+sampleyear_cor|lagoslakeid), data = modern.15)
 # m0 is the full model minus the effect being tested
 m0 = update(mA, . ~ . - (0+sampleyear_cor|lagoslakeid))
 # m.slope is the model with only the effect being tested
