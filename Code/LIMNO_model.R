@@ -9,6 +9,7 @@ tn.model.stand = lmer(tn_umol_stand ~ sampleyear_cor + (sampleyear_cor|lagoslake
 tn.model.stand.int = lmer(tn_umol_stand ~ sampleyear_cor + (1|lagoslakeid), data = modern.15, REML=FALSE)
 tp.model.stand = lmer(tp_umol_stand ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
 tntp.model.stand = lmer(tn_tp_umol_stand ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
+secchi.model.stand = lmer(secchi_stand ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
 
 tn.model.stand.uncorr = lmer(tn_umol_stand ~ sampleyear_cor + (1|lagoslakeid) + (0+sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
 
@@ -17,6 +18,7 @@ tn.model.stand.uncorr = lmer(tn_umol_stand ~ sampleyear_cor + (1|lagoslakeid) + 
 blup.tn.stand = coef(tn.model.stand)
 blup.tp.stand = coef(tp.model.stand)
 blup.tntp.stand = coef(tntp.model.stand)
+blup.secchi.stand = coef(secchi.model.stand)
 
 ## turn random coefficient list into a dataframe
 ## also express BLUPs as a percent by multiplying by 100
@@ -30,6 +32,10 @@ blup.tp.stand = data.frame(intercepts = blup.tp.stand$lagoslakeid[[1]],
 blup.tntp.stand = data.frame(intercepts = blup.tntp.stand$lagoslakeid[[1]], 
                            slopes = 100*blup.tntp.stand$lagoslakeid[[2]],
                            lagoslakeid = row.names(blup.tntp.stand$lagoslakeid))
+blup.secchi.stand = data.frame(intercepts = blup.secchi.stand$lagoslakeid[[1]], 
+                           slopes = 100*blup.secchi.stand$lagoslakeid[[2]],
+                           lagoslakeid = row.names(blup.secchi.stand$lagoslakeid))
+
 
 
 ## create a histogram of slopes for the change in TP and TN
@@ -44,13 +50,13 @@ dev.off()
 ## by using 1.96*SE of each BLUP
 
 # set blup equal to which model you want to validate
-blup = blup.tp.stand
+blup = blup.secchi.stand
 # extract SE from random effects
-test = ranef(tp.model.stand, condVar=TRUE)
+test = ranef(secchi.model.stand, condVar=TRUE)
 
 #extract blup SE using the se.ranef function
 #change model name to which model you are evaluating
-model = tp.model.stand
+model = secchi.model.stand
 blup.se = se.ranef(model)
 blup.se = data.frame(intercepts = blup.se$lagoslakeid[,1], 
                      slopes = 100*blup.se$lagoslakeid[,2], 
@@ -77,6 +83,7 @@ for (i in 1:2) {
 
 tn.diff.zero = n.diff.zero[[2]]
 tp.diff.zero = n.diff.zero[[2]]
+secchi.diff.zero = n.diff.zero[[2]]
 
 ## create a plot of TN ~ TP slopes, where color is dependent on whether 
 ## TN (green), TP (red), or TN & TP (brown) are different from zero
@@ -98,6 +105,22 @@ points(blup.tn.stand$lagoslakeid[,2][tn.diff.zero==TRUE & tp.diff.zero==TRUE]~bl
        col = rgb(.2,.2,.2,.5), pch=16, cex = 1.5)
 
 
+dev.off()
+
+# create a plot of TN slopes ~ Secchi slopes and TP slopes ~ Secchi slopes
+# merge data frames
+
+secchi.test.tn = merge(blup.tn.stand, blup.secchi.stand, by = "lagoslakeid", all.x = TRUE )
+secchi.test.tp = merge(blup.tp.stand, blup.secchi.stand, by = "lagoslakeid", all.x = TRUE )
+
+pdf("Change_Secchi_TN.pdf")
+# plot secchi slopes on the y axis and nitrogen slopes on x axis
+plot(slopes.y ~ slopes.x, data = secchi.test.tn, xlab = "% Change in TN", ylab = "% Change in Secchi")
+dev.off()
+
+pdf("Change_Secchi_TP.pdf")
+# plot secchi slopes on the y axis and phosphorus slopes on x axis
+plot(slopes.y ~ slopes.x, data = secchi.test.tp, xlab = "% Change in TP", ylab = "% Change in Secchi")
 dev.off()
 
 # Create a map that plots change by location
