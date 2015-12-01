@@ -3,6 +3,7 @@ library(lme4)
 library(MuMIn)
 library(arm)
 library(effects)
+require(maps)
 
 ## run models with standardized data to make slopes directly comparable
 tn.model.stand = lmer(tn_umol_stand ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
@@ -127,8 +128,6 @@ dev.off()
 locations = data.lake.specific[,c(1,3,4)]
 tn.blups = merge(blup.tn.stand, locations, by = "lagoslakeid", all.x=TRUE)
 tp.blups = merge(blup.tp.stand, locations, by = "lagoslakeid", all.x=TRUE)
-
-require(maps)
 
 pdf("Change_TN_TP_location.pdf")
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
