@@ -1,3 +1,4 @@
+library(reshape)
 setwd("~/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
 data = read.table("lagos_epi_nutr_10541.txt", 
                   header = TRUE, 
@@ -141,11 +142,37 @@ year.means = data.frame(lagoslakeid = year.means.tntp$lagoslakeid,
 modern = year.means[year.means$sampleyear > 1989, ]
 
 #limit analysis to only lakes that have >= 15 years of data post-1990
-#first, calculate how many years of observation each year has (plus calculate mean stoich over all years)
+#first, calculate how many years of observation each lake has (plus calculate mean stoich over all years)
 duration = aggregate(modern$tn_tp_umol, by=list(modern$lagoslakeid), FUN=function(x) c(mean=mean(x),sd=sd(x),covar=sd(x)/mean(x), nobs=length(x)))
 
 #create a list of lagoslakeid of each lake that has >= 15 years of data
 modern.15 = modern[modern$lagoslakeid %in% duration$Group.1[duration$x[,4]>=15], ]
+
+#create a list of lagoslakeid of each lake that has >= 10 years of data 
+modern.10 = modern[modern$lagoslakeid %in% duration$Group.1[duration$x[,4]>=10], ]
+
+#further limit the modern.10 analysis to lakes where there is no more than
+#5 consecutive years with no observations
+
+x = modern.10[,c(1,2)]
+x = data.frame[ye]
+x = t(x)
+# i = years, j = lakes
+lakes = unique(modern.10$lagoslakeid)
+years = c(1990:2011)
+keep = c()
+for (j in 1:length(unique(modern.10$lagoslakeid))) {
+  lake.years = modern.10$sampleyear[modern.10$lagoslakeid == lakes[j]]
+  overlap = years %in% lake.years
+  overlap = data.frame(lengths = rle(overlap)[[1]], values = rle(overlap)[[2]])
+  test = which(overlap$lengths >=5 & overlap$values == FALSE)
+  if (length(test) > 0){
+    keep[j] = FALSE
+  } else {
+    keep[j] = TRUE
+  }
+  
+}
 
 # create a mixed model where the nutrient is the response, year is the 
 # the predictor, and slopes and intercepts are allowed to vary by lake (grouping)
