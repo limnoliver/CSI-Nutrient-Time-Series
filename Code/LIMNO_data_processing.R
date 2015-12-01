@@ -154,9 +154,6 @@ modern.10 = modern[modern$lagoslakeid %in% duration$Group.1[duration$x[,4]>=10],
 #further limit the modern.10 analysis to lakes where there is no more than
 #5 consecutive years with no observations
 
-x = modern.10[,c(1,2)]
-x = data.frame[ye]
-x = t(x)
 # i = years, j = lakes
 lakes = unique(modern.10$lagoslakeid)
 years = c(1990:2011)
@@ -171,13 +168,17 @@ for (j in 1:length(unique(modern.10$lagoslakeid))) {
   } else {
     keep[j] = TRUE
   }
-  
 }
+
+#we gain 17 lakes (90 to 107) by changing the filter rule
+keep.id = lakes[keep == TRUE]
+modern.10 = modern.10[which(modern.10$lagoslakeid %in% keep.id), ]
 
 # create a mixed model where the nutrient is the response, year is the 
 # the predictor, and slopes and intercepts are allowed to vary by lake (grouping)
 
 modern.15$sampleyear_cor = modern.15$sampleyear - 1990
+modern.10$sampleyear_cor = modern.10$sampleyear - 1990
 
 ## create a column where tn, tp, tn:tp are standardized by the 
 ## initial (1990 or first year) concentration in the lake
@@ -188,4 +189,12 @@ for (i in 1:length(modern.15$lagoslakeid)){
   modern.15$tp_umol_stand[i] = (modern.15$tp_umol[i] - modern.15$tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])])/modern.15$tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])] 
   modern.15$tn_tp_umol_stand[i] = (modern.15$tn_tp_umol[i] - modern.15$tn_tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])])/modern.15$tn_tp_umol[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])] 
   modern.15$secchi_stand[i] = (modern.15$secchi[i] - modern.15$secchi[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])])/modern.15$secchi[modern.15$lagoslakeid == lake & modern.15$sampleyear_cor == min(modern.15$sampleyear_cor[modern.15$lagoslakeid == lake])] 
+}
+
+for (i in 1:length(modern.10$lagoslakeid)){
+  lake = modern.10$lagoslakeid[i]
+  modern.10$tn_umol_stand[i] = (modern.10$tn_umol[i] - modern.10$tn_umol[modern.10$lagoslakeid == lake & modern.10$sampleyear_cor == min(modern.10$sampleyear_cor[modern.10$lagoslakeid == lake])])/modern.10$tn_umol[modern.10$lagoslakeid == lake & modern.10$sampleyear_cor == min(modern.10$sampleyear_cor[modern.10$lagoslakeid == lake])] 
+  modern.10$tp_umol_stand[i] = (modern.10$tp_umol[i] - modern.10$tp_umol[modern.10$lagoslakeid == lake & modern.10$sampleyear_cor == min(modern.10$sampleyear_cor[modern.10$lagoslakeid == lake])])/modern.10$tp_umol[modern.10$lagoslakeid == lake & modern.10$sampleyear_cor == min(modern.10$sampleyear_cor[modern.10$lagoslakeid == lake])] 
+  modern.10$tn_tp_umol_stand[i] = (modern.10$tn_tp_umol[i] - modern.10$tn_tp_umol[modern.10$lagoslakeid == lake & modern.10$sampleyear_cor == min(modern.10$sampleyear_cor[modern.10$lagoslakeid == lake])])/modern.10$tn_tp_umol[modern.10$lagoslakeid == lake & modern.10$sampleyear_cor == min(modern.10$sampleyear_cor[modern.10$lagoslakeid == lake])] 
+  modern.10$secchi_stand[i] = (modern.10$secchi[i] - modern.10$secchi[modern.10$lagoslakeid == lake & modern.10$sampleyear_cor == min(modern.10$sampleyear_cor[modern.10$lagoslakeid == lake])])/modern.10$secchi[modern.10$lagoslakeid == lake & modern.10$sampleyear_cor == min(modern.10$sampleyear_cor[modern.10$lagoslakeid == lake])] 
 }
