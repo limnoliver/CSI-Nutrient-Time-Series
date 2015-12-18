@@ -2,11 +2,9 @@
 ## lakes must have an observation in each 5 year period
 ## to be included.
 
-
 keep.5 = c()
 keep.7 = c()
 keep.10 = c()
-
 
 for (i in 1:length(unique(year.means$lagoslakeid))) {
   lake = unique(year.means$lagoslakeid)[i]
