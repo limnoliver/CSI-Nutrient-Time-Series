@@ -13,6 +13,12 @@ tp.model = lmer(log(tp_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), da
 tntp.model = lmer(log(tn_tp_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
 secchi.model = lmer(log(secchi) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.15, REML=FALSE)
 
+## create models for expanded dataset
+lakes.5 = lakes$lagoslakeid[lakes$keep.5 == TRUE]
+modern.e5 = modern[modern$lagoslakeid %in% lakes.5,]
+tn.model.5 = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.e5, REML=FALSE)
+tp.model.5 = lmer(log(tp_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.e5, REML=FALSE)
+
 ## extract random coefficients
 
 blup.tn = coef(tn.model)
