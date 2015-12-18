@@ -179,6 +179,7 @@ modern.10 = modern.10[which(modern.10$lagoslakeid %in% keep.id), ]
 
 modern.15$sampleyear_cor = modern.15$sampleyear - 1990
 modern.10$sampleyear_cor = modern.10$sampleyear - 1990
+modern$sampleyear_cor = modern$sampleyear - 1990
 
 ## create a column where tn, tp, tn:tp are standardized by the 
 ## initial (1990 or first year) concentration in the lake
