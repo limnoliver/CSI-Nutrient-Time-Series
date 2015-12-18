@@ -57,6 +57,7 @@ test = ranef(secchi.model.stand, condVar=TRUE)
 
 #extract blup SE using the se.ranef function
 #change model name to which model you are evaluating
+
 model = secchi.model.stand
 blup.se = se.ranef(model)
 blup.se = data.frame(intercepts = blup.se$lagoslakeid[,1], 
