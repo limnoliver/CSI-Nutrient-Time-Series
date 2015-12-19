@@ -52,6 +52,30 @@ hist(blup.tp$slopes*100, breaks = 20, col=rgb(.5,.2,.2,0.5), add = TRUE)
 legend(2, 25, c(paste("TN mean\n =",round(as.numeric(fixef(tn.model)[2])*100,3),"\n"), paste("TP mean\n = ", round(as.numeric(fixef(tp.model)[2])*100,3))), fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5)))
 dev.off()
 
+## create a plot of TN ~ TP slopes, where color is dependent on whether 
+## TN (green), TP (red), or TN & TP (brown) are different from zero
+pdf(paste(data.short.name,"_TN_TP_change.pdf", sep=""))
+temp.tn = 100*blup.tn$slopes
+temp.tp = 100*blup.tp$slopes
+plot(temp.tn~temp.tp, 
+     xlab = "% Change in TP per year", 
+     ylab = "% Change in TN per year", 
+     cex = 1.5, cex.lab = 1.2)
+abline(0,1)
+abline(h=0, col = rgb(.2,.5,.5), lwd = 3)
+abline(v=0, col = rgb(.5,.2,.5), lwd = 3)
+text(max(temp.tp)*.75, min(temp.tn)*.75, labels = paste(length(temp.tp), "lakes"))
+
+#first plot points where TN is different from zero
+points(temp.tn[tn.diff.zero==TRUE]~temp.tp[tn.diff.zero==TRUE], 
+       col = rgb(.2,.5,.5, .5), pch=16, cex = 1.5)
+points(temp.tn[tp.diff.zero==TRUE]~temp.tp[tp.diff.zero==TRUE], 
+       col = rgb(.5,.2,.5, .5), pch=16, cex=1.5)
+points(temp.tn[tn.diff.zero==TRUE & tp.diff.zero==TRUE]~temp.tp[tn.diff.zero==TRUE& tp.diff.zero==TRUE], 
+       col = rgb(.2,.2,.2,.5), pch=16, cex = 1.5)
+dev.off()
+
+
 ## create a dotplot that examines which BLUPs are different from zero
 blup.ext <- ranef(tn.model, condVar=TRUE, whichel = "lagoslakeid")
 print(blup.ext)
