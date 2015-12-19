@@ -75,7 +75,6 @@ points(temp.tn[tn.diff.zero==TRUE & tp.diff.zero==TRUE]~temp.tp[tn.diff.zero==TR
        col = rgb(.2,.2,.2,.5), pch=16, cex = 1.5)
 dev.off()
 
-
 ## create a dotplot that examines which BLUPs are different from zero
 blup.ext <- ranef(tn.model, condVar=TRUE, whichel = "lagoslakeid")
 print(blup.ext)
