@@ -9,9 +9,9 @@ library(merTools)
 
 # set data you want to work with
 
-data = modern.e5
-data.name = "modern.e5"
-data.short.name = "e5"
+data = modern.e7
+data.name = "modern.e7"
+data.short.name = "e7"
 
 ## run models with standardized data to make slopes directly comparable
 tn.model = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
@@ -76,14 +76,20 @@ blup.secchi = merge(blup.secchi, secchi.diff.zero, by = "lagoslakeid", all.x = T
 ## Figures ##
 #####################
 
-## create a histogram of slopes for the change in TP and TN
+## set wd
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Output")
 
-pdf(file=paste("TN_TP_change_", data.name, ".pdf", sep=""))
+## create a histogram of slopes for the change in TP and TN
+hist.output = hist(blup.tn$slopes*100, breaks = 20)
+
+pdf(file=paste(data.short.name, "_TN_TP_change_hist.pdf", sep=""))
 hist(blup.tn$slopes*100, breaks = 20, col=rgb(.2,.5,.5,.5), 
-     ylim = c(0,35), xlim = c(-5, 4),main = "", xlab = "% Change per year", 
+     main = "", xlab = "% Change per year",
+     ylim = c(0,max(hist.output$counts)*1.3),
+     xlim = c(min(hist.output$breaks)*1.3, max(hist.output$breaks)*1.3),
      ylab = "Number of lakes")
 hist(blup.tp$slopes*100, breaks = 20, col=rgb(.5,.2,.2,0.5), add = TRUE)
-legend(2, 25, c(paste("TN mean\n =",round(as.numeric(fixef(tn.model)[2])*100,3),"\n"), paste("TP mean\n = ", round(as.numeric(fixef(tp.model)[2])*100,3))), fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5)))
+legend(min(hist.output$breaks)*1.1, max(hist.output$counts), c(paste("TN mean\n =",round(as.numeric(fixef(tn.model)[2])*100,3),"\n"), paste("TP mean\n = ", round(as.numeric(fixef(tp.model)[2])*100,3))), fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5)))
 dev.off()
 
 ## create a plot of TN ~ TP slopes, where color is dependent on whether 
