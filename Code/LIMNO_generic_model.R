@@ -5,6 +5,7 @@ library(MuMIn)
 library(arm)
 library(effects)
 require(maps)
+library(merTools)
 
 # set data you want to work with
 
@@ -43,6 +44,28 @@ blup.secchi = data.frame(intercepts = blup.secchi$lagoslakeid[[1]],
                          slopes = blup.secchi$lagoslakeid[[2]],
                          lagoslakeid = row.names(blup.secchi$lagoslakeid))
 
+# simulate random effects with posterior distributions
+# Uses the Gelman sim technique to built Bayes estimates
+
+tn.randoms = plotREsim(REsim(tn.model, n.sims=500))
+tp.randoms = plotREsim(REsim(tp.model, n.sims=500))
+tntp.randoms = plotREsim(REsim(tntp.model, n.sims=500))
+secchi.randoms = plotREsim(REsim(secchi.model, n.sims=500))
+
+#get TRUE/FALSE out of whether each point is significantly different
+#from zero based on above simulations
+
+tn.diff.zero = data.frame(lagoslakeid = tn.randoms$data$groupID[tn.randoms$data$term=="sampleyear_cor"], 
+                          slopes = tn.randoms$data$sig[tn.randoms$data$term=="sampleyear_cor"])
+tp.diff.zero = data.frame(lagoslakeid = tp.randoms$data$groupID[tp.randoms$data$term=="sampleyear_cor"], 
+                          slopes = tp.randoms$data$sig[tp.randoms$data$term=="sampleyear_cor"])
+tntp.diff.zero = data.frame(lagoslakeid = tntp.randoms$data$groupID[tntp.randoms$data$term=="sampleyear_cor"], 
+                          slopes = tntp.randoms$data$sig[tntp.randoms$data$term=="sampleyear_cor"])
+secchi.diff.zero = data.frame(lagoslakeid = secchi.randoms$data$groupID[secchi.randoms$data$term=="sampleyear_cor"], 
+                          slopes = secchi.randoms$data$sig[secchi.randoms$data$term=="sampleyear_cor"])
+
+
+
 ## create a histogram of slopes for the change in TP and TN
 pdf(file=paste("TN_TP_change_", data.name, ".pdf", sep=""))
 hist(blup.tn$slopes*100, breaks = 20, col=rgb(.2,.5,.5,.5), 
@@ -69,6 +92,7 @@ text(max(temp.tp)*.75, min(temp.tn)*.75, labels = paste(length(temp.tp), "lakes"
 #first plot points where TN is different from zero
 points(temp.tn[tn.diff.zero==TRUE]~temp.tp[tn.diff.zero==TRUE], 
        col = rgb(.2,.5,.5, .5), pch=16, cex = 1.5)
+
 points(temp.tn[tp.diff.zero==TRUE]~temp.tp[tp.diff.zero==TRUE], 
        col = rgb(.5,.2,.5, .5), pch=16, cex=1.5)
 points(temp.tn[tn.diff.zero==TRUE & tp.diff.zero==TRUE]~temp.tp[tn.diff.zero==TRUE& tp.diff.zero==TRUE], 
@@ -77,7 +101,7 @@ dev.off()
 
 # create a map with locations that plots where lakes are changing
 
-png("Change_Secchi_TN.png")
+pdf(paste(data.short.name,"_Change_Secchi_TN.pdf", sep=""))
 # plot secchi slopes on the y axis and nitrogen slopes on x axis
 plot(slopes.y ~ slopes.x, data = secchi.test.tn, 
      xlab = "% Change in TN", ylab = "% Change in Secchi", cex.lab=1.5)
@@ -146,6 +170,27 @@ points(tp.blups$nhd_long[tp.blups$diff.zero==TRUE & tp.blups$slopes<0], tp.blups
 legend(-83, 49, c("Positive", "Negative"), fill= c(rgb(.1,.5,.1,.5), rgb(0,.1,.5,0.5)))
 dev.off()
 
+
+
+#plot only the random slopes
+model = list(tn.model, tp.model, tntp.model, secchi.model)
+model.names = c("TN", "TP", "TNTP", "Secchi")
+for (i in 1:4) {
+  randoms = REsim(model[[i]], n.sims=500)
+  test = plotREsim(randoms) 
+  p = plotREsim(randoms[randoms$term == "sampleyear_cor",])
+  p = p + labs(title = paste(model.names[i]," Effect Ranges ","(",data.short.name,")",sep="")) 
+  p = p + annotate("text", x = 100, y=-0.05, label = paste(length(which(test$data$sig[213:424] == TRUE)),"/",length(test$data$sig)/2, "lakes with slopes \n different from zero"))
+  
+  pdf(file=paste(data.short.name,"_",model.names[i], "_blups_resim.pdf", sep=""))
+  print(p)
+  dev.off()
+}
+
+#####################
+## Miscellaneous code ##
+#####################
+
 ## create a dotplot that examines which BLUPs are different from zero
 blup.ext <- ranef(tn.model, condVar=TRUE, whichel = "lagoslakeid")
 print(blup.ext)
@@ -205,8 +250,6 @@ ggCaterpillar(ranef(tn.model, condVar=TRUE), QQ=FALSE, likeDotplot=FALSE)
 
 #using merTools and REsim
 
-library(merTools)
-
 randoms = REsim(tn.model, n.sims=500)
 head(randoms)
 plotREsim(randoms)
@@ -215,25 +258,8 @@ plotREsim(tn.model)
 #get TRUE/FALSE out of whether each point is significantly different
 #from zero or not
 
-
 #intercepts
 summary(test$data$sig[1:212])
 #slopes
 summary(test$data$sig[213:424])
-
-#plot only the random slopes
-model = list(tn.model, tp.model, tntp.model, secchi.model)
-model.names = c("tn", "tp", "tntp", "secchi")
-for (i in 1:4) {
-  randoms = REsim(model[[i]], n.sims=500)
-  test = plotREsim(randoms) 
-  p = plotREsim(randoms[randoms$term == "sampleyear_cor",])
-  p = p + labs(title = paste("Effect Ranges ",data.short.name)) 
-  p = p + annotate("text", x = 100, y=-0.05, label = paste(length(which(test$data$sig[213:424] == TRUE)),"/",length(test$data$sig)/2, "lakes with slopes \n different from zero"))
-  
-  pdf(file=paste(data.short.name,"_",model.names[i], "_blups_resim.pdf", sep=""))
-  print(p)
-  dev.off()
-}
-
 
