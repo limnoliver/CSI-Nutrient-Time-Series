@@ -112,38 +112,43 @@ points(temp.tn[blup.tn$sig==TRUE & blup.tp$sig==TRUE]~temp.tp[blup.tn$sig==TRUE&
 dev.off()
 
 # plot secchi changes vs nutrient changes
+# first have to merge the two slopes
+
+tn.secchi = merge(blup.secchi, blup.tn, by = "lagoslakeid", all.x=TRUE)
+tn.secchi[,c(3,6)] = 100*tn.secchi[,c(3,6)]
 
 pdf(paste(data.short.name,"_Change_Secchi_TN.pdf", sep=""))
-plot(slopes.y ~ slopes.x, data = secchi.test.tn, 
+plot(tn.secchi$slopes.x ~ tn.secchi$slopes.y,
      xlab = "% Change in TN", ylab = "% Change in Secchi", cex.lab=1.5)
 dev.off()
 
+tp.secchi = merge(blup.secchi, blup.tp, by = "lagoslakeid", all.x=TRUE)
+tp.secchi[,c(3,6)] = 100*tp.secchi[,c(3,6)]
+
 pdf(paste(data.short.name,"_Change_Secchi_TP.pdf", sep=""))
-# plot secchi slopes on the y axis and phosphorus slopes on x axis
-plot(slopes.y ~ slopes.x, data = secchi.test.tp, 
+plot(tp.secchi$slopes.x ~ tp.secchi$slopes.y,  
      xlab = "% Change in TP", ylab = "% Change in Secchi", cex.lab=1.5)
 dev.off()
 
 # Create a map that plots change by location
 locations = data.lake.specific[,c(1,3,4)]
-blup.tn$diff.zero = tn.diff.zero
-blup.tp$diff.zero = tp.diff.zero
-tn.blups = merge(blup.tn, locations, by = "lagoslakeid", all.x=TRUE)
-tp.blups = merge(blup.tp, locations, by = "lagoslakeid", all.x=TRUE)
 
-pdf("Change_TN_TP_location.pdf")
+blup.tn = merge(blup.tn, locations, by = "lagoslakeid", all.x=TRUE)
+blup.tp = merge(blup.tp, locations, by = "lagoslakeid", all.x=TRUE)
+
+pdf(paste(data.short.name,"_Change_TN_TP_location.pdf", sep=""))
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
                                   "Indiana","Michigan","Ohio", "Pennsylvania","New York",
                                   "New Jersey", "Connecticut","Rhode Island","Massachusetts",
                                   "Vermont", "New Hampshire","Maine"), fill = TRUE,col = "gray")
+points(blup.tn$nhd_long[blup.tp$sig==FALSE & blup.tn$sig==FALSE], blup.tn$nhd_lat[blup.tp$sig==FALSE & blup.tn$sig==FALSE], cex = 1.2)
 
-points(tn.blups$nhd_long[tn.blups$diff.zero==TRUE], tn.blups$nhd_lat[tn.blups$diff.zero==TRUE],
+points(blup.tn$nhd_long[blup.tn$sig==TRUE], blup.tn$nhd_lat[blup.tn$sig==TRUE],
        col = rgb(.2,.5,.5, .5), pch=16, cex = 1.2)
-points(tp.blups$nhd_long[tp.blups$diff.zero==TRUE], tp.blups$nhd_lat[tp.blups$diff.zero==TRUE], 
+points(blup.tp$nhd_long[blup.tp$sig==TRUE], blup.tp$nhd_lat[blup.tp$sig==TRUE], 
        col = rgb(.5,.2,.5, .5), pch=16, cex = 1.2)
-points(tn.blups$nhd_long[tn.blups$diff.zero==TRUE & tp.blups$diff.zero==TRUE], tn.blups$nhd_lat[tn.blups$diff.zero==TRUE & tp.blups$diff.zero==TRUE], 
+points(blup.tn$nhd_long[blup.tn$sig==TRUE & blup.tp$sig==TRUE], blup.tn$nhd_lat[blup.tn$sig==TRUE & blup.tp$sig==TRUE], 
        col = rgb(.2,.2,.2,.5), pch=16, cex = 1.2)
-points(tn.blups$nhd_long[tp.blups$diff.zero==FALSE & tn.blups$diff.zero==FALSE], tn.blups$nhd_lat[tp.blups$diff.zero==FALSE & tn.blups$diff.zero==FALSE], cex = 1.2)
 legend(-83, 49, c("TN", "TP", "TN & TP"), fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5), rgb(.2,.2,.2,.5)))
 dev.off()
 
@@ -156,11 +161,11 @@ map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","
                                   "Vermont", "New Hampshire","Maine"), fill = TRUE,col = "gray")
 
 #first plot points where TN is different from zero
-points(tn.blups$nhd_long[tn.blups$diff.zero==FALSE], tn.blups$nhd_lat[tn.blups$diff.zero==FALSE], cex=1.2)
+points(blup.tn$nhd_long[blup.tn$sig==FALSE], blup.tn$nhd_lat[blup.tn$sig==FALSE], cex=1.2)
 
-points(tn.blups$nhd_long[tn.blups$diff.zero==TRUE & tn.blups$slopes>0], tn.blups$nhd_lat[tn.blups$diff.zero==TRUE & tn.blups$slopes>0],
+points(blup.tn$nhd_long[blup.tn$sig==TRUE & blup.tn$slopes>0], blup.tn$nhd_lat[blup.tn$sig==TRUE & blup.tn$slopes>0],
        col = rgb(.1,.5,.1, .5), pch=16, cex=1.2)
-points(tn.blups$nhd_long[tn.blups$diff.zero==TRUE & tn.blups$slopes<0], tn.blups$nhd_lat[tn.blups$diff.zero==TRUE & tn.blups$slopes<0],
+points(blup.tn$nhd_long[blup.tn$sig==TRUE & blup.tn$slopes<0], blup.tn$nhd_lat[blup.tn$sig==TRUE & blup.tn$slopes<0],
        col = rgb(0,.1,.5, .5), pch=16,cex=1.2)
 legend(-83, 49, c("Positive", "Negative"), fill= c(rgb(.1,.5,.1,.5), rgb(0,.1,.5,0.5)))
 dev.off()
@@ -172,11 +177,11 @@ map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","
                                   "Vermont", "New Hampshire","Maine"), fill = TRUE,col = "gray")
 
 #first plot points where tp is different from zero
-points(tp.blups$nhd_long[tp.blups$diff.zero==FALSE], 
-       tp.blups$nhd_lat[tp.blups$diff.zero==FALSE], cex = 1.2)
-points(tp.blups$nhd_long[tp.blups$diff.zero==TRUE & tp.blups$slopes>0], tp.blups$nhd_lat[tp.blups$diff.zero==TRUE & tp.blups$slopes>0],
+points(blup.tp$nhd_long[blup.tp$sig==FALSE], 
+       blup.tp$nhd_lat[blup.tp$sig==FALSE], cex = 1.2)
+points(blup.tp$nhd_long[blup.tp$sig==TRUE & blup.tp$slopes>0], blup.tp$nhd_lat[blup.tp$sig==TRUE & blup.tp$slopes>0],
        col = rgb(.1,.5,.1, .5), pch=16, cex = 1.2)
-points(tp.blups$nhd_long[tp.blups$diff.zero==TRUE & tp.blups$slopes<0], tp.blups$nhd_lat[tp.blups$diff.zero==TRUE & tp.blups$slopes<0],
+points(blup.tp$nhd_long[blup.tp$sig==TRUE & blup.tp$slopes<0], blup.tp$nhd_lat[blup.tp$sig==TRUE & blup.tp$slopes<0],
        col = rgb(0,.1,.5, .5), pch=16, cex = 1.2)
 legend(-83, 49, c("Positive", "Negative"), fill= c(rgb(.1,.5,.1,.5), rgb(0,.1,.5,0.5)))
 dev.off()
