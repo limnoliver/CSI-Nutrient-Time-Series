@@ -16,6 +16,11 @@ secchi.model = lmer(log(secchi) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid),
 ## create models for expanded dataset
 lakes.5 = lakes$lagoslakeid[lakes$keep.5 == TRUE]
 modern.e5 = modern[modern$lagoslakeid %in% lakes.5,]
+lakes.7 = lakes$lagoslakeid[lakes$keep.7 == TRUE]
+modern.e7 = modern[modern$lagoslakeid %in% lakes.7,]
+lakes.10 = lakes$lagoslakeid[lakes$keep.10 == TRUE]
+modern.e10 = modern[modern$lagoslakeid %in% lakes.10,]
+
 tn.model.5 = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.e5, REML=FALSE)
 tp.model.5 = lmer(log(tp_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = modern.e5, REML=FALSE)
 
