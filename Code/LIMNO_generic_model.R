@@ -52,21 +52,32 @@ tp.randoms = plotREsim(REsim(tp.model, n.sims=500))
 tntp.randoms = plotREsim(REsim(tntp.model, n.sims=500))
 secchi.randoms = plotREsim(REsim(secchi.model, n.sims=500))
 
+
+
 #get TRUE/FALSE out of whether each point is significantly different
 #from zero based on above simulations
 
 tn.diff.zero = data.frame(lagoslakeid = tn.randoms$data$groupID[tn.randoms$data$term=="sampleyear_cor"], 
-                          slopes = tn.randoms$data$sig[tn.randoms$data$term=="sampleyear_cor"])
+                          sig = tn.randoms$data$sig[tn.randoms$data$term=="sampleyear_cor"])
 tp.diff.zero = data.frame(lagoslakeid = tp.randoms$data$groupID[tp.randoms$data$term=="sampleyear_cor"], 
-                          slopes = tp.randoms$data$sig[tp.randoms$data$term=="sampleyear_cor"])
+                          sig =  tp.randoms$data$sig[tp.randoms$data$term=="sampleyear_cor"])
 tntp.diff.zero = data.frame(lagoslakeid = tntp.randoms$data$groupID[tntp.randoms$data$term=="sampleyear_cor"], 
-                          slopes = tntp.randoms$data$sig[tntp.randoms$data$term=="sampleyear_cor"])
+                          sig = tntp.randoms$data$sig[tntp.randoms$data$term=="sampleyear_cor"])
 secchi.diff.zero = data.frame(lagoslakeid = secchi.randoms$data$groupID[secchi.randoms$data$term=="sampleyear_cor"], 
-                          slopes = secchi.randoms$data$sig[secchi.randoms$data$term=="sampleyear_cor"])
+                          sig = secchi.randoms$data$sig[secchi.randoms$data$term=="sampleyear_cor"])
 
+#combine BLUP output with simulated different from zero estimates above
+blup.tn = merge(blup.tn, tn.diff.zero, by = "lagoslakeid", all.x = TRUE )
+blup.tp = merge(blup.tp, tp.diff.zero, by = "lagoslakeid", all.x = TRUE )
+blup.tntp = merge(blup.tntp, tntp.diff.zero, by = "lagoslakeid", all.x = TRUE )
+blup.secchi = merge(blup.secchi, secchi.diff.zero, by = "lagoslakeid", all.x = TRUE )
 
+#####################
+## Figures ##
+#####################
 
 ## create a histogram of slopes for the change in TP and TN
+
 pdf(file=paste("TN_TP_change_", data.name, ".pdf", sep=""))
 hist(blup.tn$slopes*100, breaks = 20, col=rgb(.2,.5,.5,.5), 
      ylim = c(0,35), xlim = c(-5, 4),main = "", xlab = "% Change per year", 
@@ -77,6 +88,7 @@ dev.off()
 
 ## create a plot of TN ~ TP slopes, where color is dependent on whether 
 ## TN (green), TP (red), or TN & TP (brown) are different from zero
+
 pdf(paste(data.short.name,"_TN_TP_change.pdf", sep=""))
 temp.tn = 100*blup.tn$slopes
 temp.tp = 100*blup.tp$slopes
@@ -90,24 +102,23 @@ abline(v=0, col = rgb(.5,.2,.5), lwd = 3)
 text(max(temp.tp)*.75, min(temp.tn)*.75, labels = paste(length(temp.tp), "lakes"))
 
 #first plot points where TN is different from zero
-points(temp.tn[tn.diff.zero==TRUE]~temp.tp[tn.diff.zero==TRUE], 
+points(temp.tn[blup.tn$sig==TRUE]~temp.tp[blup.tn$sig==TRUE], 
        col = rgb(.2,.5,.5, .5), pch=16, cex = 1.5)
 
-points(temp.tn[tp.diff.zero==TRUE]~temp.tp[tp.diff.zero==TRUE], 
+points(temp.tn[blup.tp$sig==TRUE]~temp.tp[blup.tp$sig==TRUE], 
        col = rgb(.5,.2,.5, .5), pch=16, cex=1.5)
-points(temp.tn[tn.diff.zero==TRUE & tp.diff.zero==TRUE]~temp.tp[tn.diff.zero==TRUE& tp.diff.zero==TRUE], 
+points(temp.tn[blup.tn$sig==TRUE & blup.tp$sig==TRUE]~temp.tp[blup.tn$sig==TRUE& blup.tp$sig==TRUE], 
        col = rgb(.2,.2,.2,.5), pch=16, cex = 1.5)
 dev.off()
 
-# create a map with locations that plots where lakes are changing
+# plot secchi changes vs nutrient changes
 
 pdf(paste(data.short.name,"_Change_Secchi_TN.pdf", sep=""))
-# plot secchi slopes on the y axis and nitrogen slopes on x axis
 plot(slopes.y ~ slopes.x, data = secchi.test.tn, 
      xlab = "% Change in TN", ylab = "% Change in Secchi", cex.lab=1.5)
 dev.off()
 
-png("Change_Secchi_TP.png")
+pdf(paste(data.short.name,"_Change_Secchi_TP.pdf", sep=""))
 # plot secchi slopes on the y axis and phosphorus slopes on x axis
 plot(slopes.y ~ slopes.x, data = secchi.test.tp, 
      xlab = "% Change in TP", ylab = "% Change in Secchi", cex.lab=1.5)
