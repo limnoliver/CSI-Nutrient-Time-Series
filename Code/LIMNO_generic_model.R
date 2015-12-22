@@ -79,6 +79,8 @@ blup.secchi = merge(blup.secchi, secchi.diff.zero, by = "lagoslakeid", all.x = T
 
 ## set wd
 setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Output")
+setwd("~/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Output")
+
 
 ## create a histogram of slopes for the change in TP and TN
 hist.output = hist(blup.tn$slopes*100, breaks = 20)
@@ -87,17 +89,21 @@ hist.output = hist(blup.tn$slopes*100, breaks = 20)
 source("http://www.math.mcmaster.ca/bolker/R/misc/legendx.R")
 
 pdf(file=paste(data.short.name, "_TN_TP_change_hist.pdf", sep=""))
+par(mar=c(5,5,1,1))
 hist(blup.tn$slopes*100, breaks = 20, col=rgb(.2,.5,.5,.5), 
      main = "", xlab = "% Change per year",
      ylim = c(0,max(hist.output$counts)*1.3),
      xlim = c(min(hist.output$breaks)*1.5, max(hist.output$breaks)*1.5),
-     ylab = "Number of lakes")
+     ylab = "Number of lakes", 
+     cex.lab = 2,
+     cex.axis = 1.5)
 hist(blup.tp$slopes*100, breaks = 20, col=rgb(.5,.2,.2,0.5), add = TRUE)
-legend(min(hist.output$breaks)*1.1, max(hist.output$counts), 
+legend(min(hist.output$breaks)*1.4, max(hist.output$counts*1.1), 
        c(paste("TN mean\n =",round(as.numeric(fixef(tn.model)[2])*100,3)), 
          paste("TP mean\n = ", round(as.numeric(fixef(tp.model)[2])*100,3))), 
        fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5)), 
-       bty = "n", pt.lwd = 6, box.cex = c(1.5,1.5), y.intersp=2)
+       bty = "n", pt.lwd = 6, box.cex = c(1.2,1.2), y.intersp=2, 
+       cex = 1.5)
 dev.off()
 
 ## create a plot of TN ~ TP slopes, where color is dependent on whether 
