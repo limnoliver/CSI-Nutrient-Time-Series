@@ -10,9 +10,9 @@ library(ggplot2)
 
 # set data you want to work with
 
-data = modern.e5
-data.name = "modern.e5"
-data.short.name = "e5"
+data = modern.10
+data.name = "modern.10"
+data.short.name = "10y"
 
 ## run models with standardized data to make slopes directly comparable
 tn.model = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
