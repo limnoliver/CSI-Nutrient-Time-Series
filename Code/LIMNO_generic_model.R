@@ -6,12 +6,13 @@ library(arm)
 library(effects)
 require(maps)
 library(merTools)
+library(ggplot2)
 
 # set data you want to work with
 
-data = modern.e7
-data.name = "modern.e7"
-data.short.name = "e7"
+data = modern.e10
+data.name = "modern.e10"
+data.short.name = "e10"
 
 ## run models with standardized data to make slopes directly comparable
 tn.model = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
@@ -82,14 +83,21 @@ setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitroge
 ## create a histogram of slopes for the change in TP and TN
 hist.output = hist(blup.tn$slopes*100, breaks = 20)
 
+## some code to fix legend boxes in R
+source("http://www.math.mcmaster.ca/bolker/R/misc/legendx.R")
+
 pdf(file=paste(data.short.name, "_TN_TP_change_hist.pdf", sep=""))
 hist(blup.tn$slopes*100, breaks = 20, col=rgb(.2,.5,.5,.5), 
      main = "", xlab = "% Change per year",
      ylim = c(0,max(hist.output$counts)*1.3),
-     xlim = c(min(hist.output$breaks)*1.3, max(hist.output$breaks)*1.3),
+     xlim = c(min(hist.output$breaks)*1.5, max(hist.output$breaks)*1.5),
      ylab = "Number of lakes")
 hist(blup.tp$slopes*100, breaks = 20, col=rgb(.5,.2,.2,0.5), add = TRUE)
-legend(min(hist.output$breaks)*1.1, max(hist.output$counts), c(paste("TN mean\n =",round(as.numeric(fixef(tn.model)[2])*100,3),"\n"), paste("TP mean\n = ", round(as.numeric(fixef(tp.model)[2])*100,3))), fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5)))
+legend(min(hist.output$breaks)*1.1, max(hist.output$counts), 
+       c(paste("TN mean\n =",round(as.numeric(fixef(tn.model)[2])*100,3)), 
+         paste("TP mean\n = ", round(as.numeric(fixef(tp.model)[2])*100,3))), 
+       fill= c(rgb(.2,.5,.5,.5), rgb(.5,.2,.2,0.5)), 
+       bty = "n", pt.lwd = 6, box.cex = c(1.5,1.5), y.intersp=2)
 dev.off()
 
 ## create a plot of TN ~ TP slopes, where color is dependent on whether 
@@ -196,13 +204,13 @@ dev.off()
 
 #plot only the random slopes
 model = list(tn.model, tp.model, tntp.model, secchi.model)
+blups = list(blup.tn, blup.tp, blup.tntp, blup.secchi)
 model.names = c("TN", "TP", "TNTP", "Secchi")
 for (i in 1:4) {
   randoms = REsim(model[[i]], n.sims=500)
-  test = plotREsim(randoms) 
   p = plotREsim(randoms[randoms$term == "sampleyear_cor",])
   p = p + labs(title = paste(model.names[i]," Effect Ranges ","(",data.short.name,")",sep="")) 
-  p = p + annotate("text", x = 100, y=-0.05, label = paste(length(which(test$data$sig[213:424] == TRUE)),"/",length(test$data$sig)/2, "lakes with slopes \n different from zero"))
+  p = p + annotate("text", x = .5*length(blups[[i]]$sig), y=-0.05, label = paste(length(which(blups[[i]]$sig == TRUE)),"/",length(blups[[i]]$sig), "lakes with slopes \n different from zero"))
   
   pdf(file=paste(data.short.name,"_",model.names[i], "_blups_resim.pdf", sep=""))
   print(p)
