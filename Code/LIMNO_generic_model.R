@@ -10,9 +10,9 @@ library(ggplot2)
 
 # set data you want to work with
 
-data = modern.e10
-data.name = "modern.e10"
-data.short.name = "e10"
+data = modern.e5
+data.name = "modern.e5"
+data.short.name = "e5"
 
 ## run models with standardized data to make slopes directly comparable
 tn.model = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
@@ -110,16 +110,18 @@ dev.off()
 ## TN (green), TP (red), or TN & TP (brown) are different from zero
 
 pdf(paste(data.short.name,"_TN_TP_change.pdf", sep=""))
+par(mar=c(5,5,1,1))
 temp.tn = 100*blup.tn$slopes
 temp.tp = 100*blup.tp$slopes
 plot(temp.tn~temp.tp, 
      xlab = "% Change in TP per year", 
      ylab = "% Change in TN per year", 
-     cex = 1.5, cex.lab = 1.2)
+     cex = 1.5, cex.lab = 2, cex.axis = 1.5)
 abline(0,1)
 abline(h=0, col = rgb(.2,.5,.5), lwd = 3)
 abline(v=0, col = rgb(.5,.2,.5), lwd = 3)
-text(max(temp.tp)*.75, min(temp.tn)*.75, labels = paste(length(temp.tp), "lakes"))
+text(max(temp.tp)*.75, min(temp.tn)*.75, 
+     labels = paste(length(temp.tp), "lakes"), cex = 1.5)
 
 #first plot points where TN is different from zero
 points(temp.tn[blup.tn$sig==TRUE]~temp.tp[blup.tn$sig==TRUE], 
@@ -214,14 +216,22 @@ blups = list(blup.tn, blup.tp, blup.tntp, blup.secchi)
 model.names = c("TN", "TP", "TNTP", "Secchi")
 for (i in 1:4) {
   randoms = REsim(model[[i]], n.sims=500)
-  p = plotREsim(randoms[randoms$term == "sampleyear_cor",])
-  p = p + labs(title = paste(model.names[i]," Effect Ranges ","(",data.short.name,")",sep="")) 
-  p = p + annotate("text", x = .5*length(blups[[i]]$sig), y=-0.05, label = paste(length(which(blups[[i]]$sig == TRUE)),"/",length(blups[[i]]$sig), "lakes with slopes \n different from zero"))
+  p = plotREsim(randoms[randoms$term == "sampleyear_cor",]) + 
+        theme(axis.text=element_text(size=16),
+              axis.title=element_text(size=20),
+              strip.text.x = element_text(size = 16),
+              strip.text.y = element_text(size = 16), 
+              title = element_text(size=16))
+  p = p + labs(title = paste(model.names[i]," Effect Ranges ","(",data.short.name,")",sep=""), size = 12) 
+  p = p + annotate("text", x = .5*length(blups[[i]]$sig), y=-0.05, size = 4,
+                   label = paste(length(which(blups[[i]]$sig == TRUE)),"/",length(blups[[i]]$sig), "lakes with slopes \n different from zero"))
   
-  pdf(file=paste(data.short.name,"_",model.names[i], "_blups_resim.pdf", sep=""))
+  pdf(file=paste(data.short.name,"_",model.names[i], "_blups_resim.pdf", sep=""), 
+      height=3, width=5)
   print(p)
   dev.off()
 }
+
 
 #####################
 ## Miscellaneous code ##
