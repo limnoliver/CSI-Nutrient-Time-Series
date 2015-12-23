@@ -138,6 +138,7 @@ dev.off()
 
 tn.secchi = merge(blup.secchi, blup.tn, by = "lagoslakeid", all.x=TRUE)
 tn.secchi[,c(3,6)] = 100*tn.secchi[,c(3,6)]
+tn.secchi.model = lm(tn.secchi$slopes.x~tn.secchi$slopes.y)
 
 pdf(paste(data.short.name,"_Change_Secchi_TN.pdf", sep=""))
 plot(tn.secchi$slopes.x ~ tn.secchi$slopes.y,
@@ -146,6 +147,7 @@ dev.off()
 
 tp.secchi = merge(blup.secchi, blup.tp, by = "lagoslakeid", all.x=TRUE)
 tp.secchi[,c(3,6)] = 100*tp.secchi[,c(3,6)]
+tp.secchi.model= lm(tp.secchi$slopes.x~tp.secchi$slopes.y)
 
 pdf(paste(data.short.name,"_Change_Secchi_TP.pdf", sep=""))
 plot(tp.secchi$slopes.x ~ tp.secchi$slopes.y,  
@@ -208,6 +210,24 @@ points(blup.tp$nhd_long[blup.tp$sig==TRUE & blup.tp$slopes<0], blup.tp$nhd_lat[b
 legend(-83, 49, c("Positive", "Negative"), fill= c(rgb(.1,.5,.1,.5), rgb(0,.1,.5,0.5)))
 dev.off()
 
+################
+## create map that puts random subset of the 
+## significant and nonsignificant relationships on the map
+################
+
+#randomly select 5 lakes with significant TN or TP trends
+lakes.sig.tn = sample(1:length(which(blup.tn$sig==TRUE)), 5)
+lakes.sig.tn = as.character(blup.tn$lagoslakeid[blup.tn$sig == TRUE][lakes.sig.tn])
+
+lakes.sig.tp = sample(1:length(which(blup.tp$sig==TRUE)), 5)
+lakes.sig.tp = as.character(blup.tp$lagoslakeid[blup.tp$sig == TRUE][lakes.sig.tp])
+
+#create a map where the plot is next to the dot marking the location of the lake
+
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = TRUE,col = "gray")
 
 
 #plot only the random slopes
