@@ -10,9 +10,9 @@ library(ggplot2)
 
 # set data you want to work with
 
-data = modern.10
+data = modern.15
 data.name = "modern.10"
-data.short.name = "10y"
+data.short.name = "15y"
 
 ## run models with standardized data to make slopes directly comparable
 tn.model = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
@@ -210,16 +210,38 @@ points(blup.tp$nhd_long[blup.tp$sig==TRUE & blup.tp$slopes<0], blup.tp$nhd_lat[b
 legend(-83, 49, c("Positive", "Negative"), fill= c(rgb(.1,.5,.1,.5), rgb(0,.1,.5,0.5)))
 dev.off()
 
+#########################################
+## create a histogram that shows
+## how many years of observation each 
+## lake has that made it into the dataset
+#########################################
+
+year.obs = data.frame(lagoslakeid = duration$Group.1, nyears = duration$x[,4])
+year.obs = year.obs[year.obs$lagoslakeid %in% unique(data$lagoslakeid), ]
+hist.out = hist(year.obs$nyears)
+
+pdf(paste(data.short.name, "_nyears_hist.pdf"))
+hist(year.obs$nyears,
+     main = "", 
+     xlab = "Duration of Record (y)", 
+     ylab = "Number of lakes")
+text(x = median(hist.out$breaks), 
+     y = max(hist.out$counts)*.7, 
+     labels = paste("Mean = ", round(mean(year.obs$nyears),1), 
+                    "\nMedian = ", median(year.obs$nyears),
+                    "\nMin = ", min(year.obs$nyears), sep=""))
+dev.off()
+
 ################
 ## create map that puts random subset of the 
 ## significant and nonsignificant relationships on the map
 ################
 
 #randomly select 5 lakes with significant TN or TP trends
-lakes.sig.tn = sample(1:length(which(blup.tn$sig==TRUE)), 5)
+lakes.sig.tn = sample(1:length(which(blup.tn$sig==TRUE)), 6)
 lakes.sig.tn = as.character(blup.tn$lagoslakeid[blup.tn$sig == TRUE][lakes.sig.tn])
 
-lakes.sig.tp = sample(1:length(which(blup.tp$sig==TRUE)), 5)
+lakes.sig.tp = sample(1:length(which(blup.tp$sig==TRUE)), 6)
 lakes.sig.tp = as.character(blup.tp$lagoslakeid[blup.tp$sig == TRUE][lakes.sig.tp])
 
 #create a map where the plot is next to the dot marking the location of the lake
@@ -229,6 +251,41 @@ map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","
                                   "New Jersey", "Connecticut","Rhode Island","Massachusetts",
                                   "Vermont", "New Hampshire","Maine"), fill = TRUE,col = "gray")
 
+pdf(paste(data.short.name,"_TN_randomchange.pdf",sep=""), height= 4, width =7)
+par(mfrow = c(2,3), oma = c(0,0,0,0), mar = c(2,3,2,1))
+for (i in 1:length(lakes.sig.tn)){
+  plot(data$tn_umol[data$lagoslakeid == lakes.sig.tn[i]]~data$sampleyear_cor[data$lagoslakeid == lakes.sig.tn[i]],
+       main = paste(lakes.sig.tn[i]), 
+       #xlab = "Year (post 1990)", 
+       #ylab = "TN (umol)", 
+       #cex.lab = 2,
+       ylab = "",
+       xlab = "",
+       cex.axis = 1.5, 
+       cex.pt = 2, 
+       cex = 1.8, 
+       pch = 16, 
+       col =  rgb(.1,.5,.1, .5))
+}
+dev.off()
+
+pdf(paste(data.short.name,"_TP_randomchange.pdf",sep=""), height= 4, width =7)
+par(mfrow = c(2,3), oma = c(0,0,0,0), mar = c(2,3,2,1))
+for (i in 1:length(lakes.sig.tp)){
+      plot(data$tp_umol[data$lagoslakeid == lakes.sig.tp[i]]~data$sampleyear_cor[data$lagoslakeid == lakes.sig.tp[i]],
+       main = paste(lakes.sig.tp[i]), 
+       #xlab = "Year (post 1990)", 
+       #ylab = "TP (umol)",
+       xlab = "", 
+       ylab = "",
+       cex.lab = 2,
+       cex.axis = 1.5, 
+       cex.pt = 2, 
+       cex = 1.8, 
+       pch = 16, 
+       col = rgb(0,.1,.5, .5))
+}
+dev.off()
 
 #plot only the random slopes
 model = list(tn.model, tp.model, tntp.model, secchi.model)
