@@ -261,6 +261,7 @@ m.slope = update(mA, . ~ . - (1|lagoslakeid))
 # note that the exctRLRT function must list models in specific order
 test = exactRLRT(m.slope, mA, m0)
 
-
+##create new thing in data file
+lakeidtest<-data$lagoslakeid
 
 ###sarah made a change to this file
