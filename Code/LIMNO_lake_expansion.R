@@ -56,6 +56,14 @@ points(lakes$nhd_long[lakes$keep.5 == TRUE], lakes$nhd_lat[lakes$keep.5 == TRUE]
        pch = 16, cex=0.8, col = "springgreen2")
 dev.off()
 
+## create models for expanded dataset
+lakes.5 = lakes$lagoslakeid[lakes$keep.5 == TRUE]
+modern.e5 = modern[modern$lagoslakeid %in% lakes.5,]
+lakes.7 = lakes$lagoslakeid[lakes$keep.7 == TRUE]
+modern.e7 = modern[modern$lagoslakeid %in% lakes.7,]
+lakes.10 = lakes$lagoslakeid[lakes$keep.10 == TRUE]
+modern.e10 = modern[modern$lagoslakeid %in% lakes.10,]
+
 ## create a random sample of N and P values from each decade. So, for example,
 ## find th 
 ## I created several groups based on lake characteristics I was interested in weighting for
