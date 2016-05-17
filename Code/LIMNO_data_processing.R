@@ -66,44 +66,6 @@ keep.all = as.numeric(keep.all)
 
 tp.summer = tp.summer[keep.all, ]
 
-#a function that allows you to calculate SE (and other stats)
-#by groups in a data frame
-summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
-                      conf.interval=.95, .drop=TRUE) {
-  require(plyr)
-  
-  # New version of length which can handle NA's: if na.rm==T, don't count them
-  length2 <- function (x, na.rm=FALSE) {
-    if (na.rm) sum(!is.na(x))
-    else       length(x)
-  }
-  
-  # This does the summary. For each group's data frame, return a vector with
-  # N, mean, and sd
-  datac <- ddply(data, groupvars, .drop=.drop,
-                 .fun = function(xx, col) {
-                   c(N    = length2(xx[[col]], na.rm=na.rm),
-                     mean = mean   (xx[[col]], na.rm=na.rm),
-                     sd   = sd     (xx[[col]], na.rm=na.rm)
-                   )
-                 },
-                 measurevar
-  )
-  
-  # Rename the "mean" column    
-  datac <- rename(datac, c("mean" = measurevar))
-  
-  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
-  
-  # Confidence interval multiplier for standard error
-  # Calculate t-statistic for confidence interval: 
-  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
-  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
-  datac$ci <- datac$se * ciMult
-  
-  return(datac)
-}
-
 #find mean, coefficient of variance (covar) and number of observations
 #for TN:TP, TN, TP in each lake for every year of observation
 intra.annual.tn = aggregate(tn.summer$tn_umol, tn.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
@@ -147,22 +109,33 @@ year.means.tp = data.frame(lagoslakeid = year.means.tp$lagoslakeid,
                            tp_umol = year.means.tp$tp_umol,
                            secchi = year.means.tp.secchi$secchi,
                            nobs = year.means.tp$nobs)
+
 #limit analysis to only 1990-present
-modern = year.means[year.means$sampleyear > 1989, ]
+modern.tn = year.means.tn[year.means.tn$sampleyear > 1989, ]
+modern.tp = year.means.tp[year.means.tp$sampleyear > 1989, ]
 
 #limit analysis to only lakes that have >= 15 years of data post-1990
 #first, calculate how many years of observation each lake has (plus calculate mean stoich over all years)
-duration = aggregate(modern$tn_tp_umol, by=list(modern$lagoslakeid), FUN=function(x) c(mean=mean(x),sd=sd(x),covar=sd(x)/mean(x), nobs=length(x)))
+duration.tn = aggregate(modern.tn$tn_umol, by=list(modern.tn$lagoslakeid), FUN=function(x) c(mean=mean(x),sd=sd(x),covar=sd(x)/mean(x), nobs=length(x)))
 
-#create a list of lagoslakeid of each lake that has >= 15 years of data
-modern.15 = modern[modern$lagoslakeid %in% duration$Group.1[duration$x[,4]>=15], ]
+#limit to lakes that have at least one observation in each decade of time extent
+# one in 1990-2000, 2001-2011
+keep.10 = c()
 
-#create a list of lagoslakeid of each lake that has >= 10 years of data 
-modern.10 = modern[modern$lagoslakeid %in% duration$Group.1[duration$x[,4]>=10], ]
-
-#further limit the modern.10 analysis to lakes where there is no more than
-#5 consecutive years with no observations
-
+for (i in 1:length(unique(modern.tn$lagoslakeid))) {
+  lake = unique(modern.tn$lagoslakeid)[i]
+  years = modern.tn$sampleyear[modern.tn$lagoslakeid == lake]
+  
+  test.10 = c(length(which(years %in% c(1990:2000)))>0, 
+              length(which(years %in% c(2001:2011)))>0)
+  
+ 
+  if (length(which(test.10 == FALSE)) > 0) {
+    keep.10[i] = FALSE
+  } else {
+    keep.10[i] = TRUE
+  }
+}
 # i = years, j = lakes
 lakes = unique(modern.10$lagoslakeid)
 years = c(1990:2011)
