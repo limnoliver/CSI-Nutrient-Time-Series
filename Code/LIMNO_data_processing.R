@@ -8,6 +8,7 @@ data = read.table("lagos_epi_nutr_10541.txt",
                   strip.white = TRUE, 
                   comment.char = "", 
                   colClasses=c(sampledate = "POSIXct"))
+
 data.lake.specific = read.table("lagos_lakes_10541.txt", 
                                 header = TRUE, 
                                 sep = "\t", 
