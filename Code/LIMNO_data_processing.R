@@ -106,16 +106,12 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 
 #find mean, coefficient of variance (covar) and number of observations
 #for TN:TP, TN, TP in each lake for every year of observation
-intra.annual.tntp = aggregate(stoich.summer$tn_tp_umol, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
-intra.annual.tn = aggregate(stoich.summer$tn_umol, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
-intra.annual.tp = aggregate(stoich.summer$tp_umol, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
-intra.annual.secchi = aggregate(stoich.summer$secchi, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x), sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
-year.means.tntp = data.frame(lagoslakeid = intra.annual.tntp$lagoslakeid, 
-                        sampleyear = intra.annual.tntp$sampleyear, 
-                        tn_tp_umol = intra.annual.tntp$x[,1], 
-                        sd = intra.annual.tntp$x[,2], 
-                        covar = intra.annual.tntp$x[,3], 
-                        nobs = intra.annual.tntp$x[,4])
+intra.annual.tn = aggregate(tn.summer$tn_umol, tn.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
+intra.annual.tp = aggregate(tp.summer$tp_umol, tp.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
+intra.annual.tn.secchi = aggregate(tn.summer$secchi, tn.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x), sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
+intra.annual.tp.secchi = aggregate(tp.summer$secchi, tp.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x), sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
+
+
 year.means.tn = data.frame(lagoslakeid = intra.annual.tn$lagoslakeid, 
                              sampleyear = intra.annual.tn$sampleyear, 
                              tn_umol = intra.annual.tn$x[,1], 
@@ -128,20 +124,29 @@ year.means.tp = data.frame(lagoslakeid = intra.annual.tp$lagoslakeid,
                            sd = intra.annual.tp$x[,2], 
                            covar = intra.annual.tp$x[,3], 
                            nobs = intra.annual.tp$x[,4])
-year.means.secchi = data.frame(lagoslakeid = intra.annual.secchi$lagoslakeid, 
-                           sampleyear = intra.annual.secchi$sampleyear, 
-                           secchi = intra.annual.secchi$x[,1], 
-                           sd = intra.annual.secchi$x[,2], 
-                           covar = intra.annual.secchi$x[,3], 
-                           nobs = intra.annual.secchi$x[,4])
+year.means.tn.secchi = data.frame(lagoslakeid = intra.annual.tn.secchi$lagoslakeid, 
+                           sampleyear = intra.annual.tn.secchi$sampleyear, 
+                           secchi = intra.annual.tn.secchi$x[,1], 
+                           sd = intra.annual.tn.secchi$x[,2], 
+                           covar = intra.annual.tn.secchi$x[,3], 
+                           nobs = intra.annual.tn.secchi$x[,4])
+year.means.tp.secchi = data.frame(lagoslakeid = intra.annual.tp.secchi$lagoslakeid, 
+                                  sampleyear = intra.annual.tp.secchi$sampleyear, 
+                                  secchi = intra.annual.tp.secchi$x[,1], 
+                                  sd = intra.annual.tp.secchi$x[,2], 
+                                  covar = intra.annual.tp.secchi$x[,3], 
+                                  nobs = intra.annual.tp.secchi$x[,4])
 
-year.means = data.frame(lagoslakeid = year.means.tntp$lagoslakeid, 
-                        sampleyear = year.means.tntp$sampleyear, 
+year.means.tn = data.frame(lagoslakeid = year.means.tn$lagoslakeid, 
+                        sampleyear = year.means.tn$sampleyear, 
                         tn_umol = year.means.tn$tn_umol,
-                        tp_umol = year.means.tp$tp_umol,
-                        tn_tp_umol = year.means.tntp$tn_tp_umol,
-                        secchi = year.means.secchi$secchi,
-                        nobs = year.means.tntp$nobs)
+                        secchi = year.means.tn.secchi$secchi,
+                        nobs = year.means.tn$nobs)
+year.means.tp = data.frame(lagoslakeid = year.means.tp$lagoslakeid, 
+                           sampleyear = year.means.tp$sampleyear, 
+                           tp_umol = year.means.tp$tp_umol,
+                           secchi = year.means.tp.secchi$secchi,
+                           nobs = year.means.tp$nobs)
 #limit analysis to only 1990-present
 modern = year.means[year.means$sampleyear > 1989, ]
 
