@@ -130,17 +130,13 @@ year.means.tp = rbind(year.means.tp, iowa[,c(2,3,5,7,8)])
 modern.tn = year.means.tn[year.means.tn$sampleyear > 1989, ]
 modern.tp = year.means.tp[year.means.tp$sampleyear > 1989, ]
 
-#limit analysis to only lakes that have >= 15 years of data post-1990
-#first, calculate how many years of observation each lake has (plus calculate mean stoich over all years)
-duration.tn = aggregate(modern.tn$tn_umol, by=list(modern.tn$lagoslakeid), FUN=function(x) c(mean=mean(x),sd=sd(x),covar=sd(x)/mean(x), nobs=length(x)))
-
 #limit to lakes that have at least one observation in each decade of time extent
 # one in 1990-2000, 2001-2011
 keep.10 = c()
 
-for (i in 1:length(unique(modern.tn$lagoslakeid))) {
-  lake = unique(modern.tn$lagoslakeid)[i]
-  years = modern.tn$sampleyear[modern.tn$lagoslakeid == lake]
+for (i in 1:length(unique(modern.tp$lagoslakeid))) {
+  lake = unique(modern.tp$lagoslakeid)[i]
+  years = modern.tp$sampleyear[modern.tp$lagoslakeid == lake]
   
   test.10 = c(length(which(years %in% c(1990:2000)))>0, 
               length(which(years %in% c(2001:2011)))>0)
@@ -152,6 +148,11 @@ for (i in 1:length(unique(modern.tn$lagoslakeid))) {
     keep.10[i] = TRUE
   }
 }
+
+lakes.10 = unique(modern.tn$lagoslakeid)[keep.10 == TRUE]
+modern.tn.e10 = modern.tn[modern.tn$lagoslakeid %in% lakes.10, ]
+modern.tp.e10 = modern.tp[modern.tp$lagoslakeid %in% lakes.10, ]
+
 # i = years, j = lakes
 lakes = unique(modern.10$lagoslakeid)
 years = c(1990:2011)
