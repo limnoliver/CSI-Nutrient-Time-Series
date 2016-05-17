@@ -8,7 +8,6 @@ data = read.table("lagos_epi_nutr_10541.txt",
                   strip.white = TRUE, 
                   comment.char = "", 
                   colClasses=c(sampledate = "POSIXct"))
-
 data.lake.specific = read.table("lagos_lakes_10541.txt", 
                                 header = TRUE, 
                                 sep = "\t", 
@@ -27,35 +26,45 @@ for (i in 1:nrow(data)){
   }
 }
 
-#create a data subset which only includes instances where
-#both TP and TN_combined exist
+# create a data subset of TN and TP (independent) where there has to be 
+# TN or TP observations, respectively
 
-stoich = data[is.na(data$tn_combined)==FALSE & is.na(data$tp)==FALSE, ]
+tn = data[is.na(data$tn_combined)==FALSE, ]
+tp = data[is.na(data$tp)==FALSE, ]
 
-#create a column tn_tp=TN:TP ratio (by mass)
-stoich$tn_tp = stoich$tn_combined/stoich$tp
-
-#create molar version of ratio and nutrients
-stoich$tn_tp_umol = stoich$tn_tp * (30.97/14.01)
-stoich$tn_umol = stoich$tn_combined/14.01
-stoich$tp_umol = stoich$tp/30.97
+#create molar version of nutrients
+tn$tn_umol = tn$tn_combined/14.01
+tp$tp_umol = tp$tp/30.97
 
 #limit observations from JUN 15-AUG 15
 # first, just keep samples in JUN, JUL, AUG, SEP
-stoich.summer = stoich[stoich$samplemonth == 6|stoich$samplemonth == 7|stoich$samplemonth==8|stoich$samplemonth==9, ]
+tn.summer = tn[tn$samplemonth == 6|tn$samplemonth == 7|tn$samplemonth==8|tn$samplemonth==9, ]
+tp.summer = tp[tp$samplemonth == 6|tp$samplemonth == 7|tp$samplemonth==8|tp$samplemonth==9, ]
 
 # now, get rid of first half of June and second half of Sept
-stoich.summer$sampleday = format(stoich.summer$sampledate, "%d")
-stoich.summer$sampleday = as.numeric(stoich.summer$sampleday)
+tn.summer$sampleday = format(tn.summer$sampledate, "%d")
+tn.summer$sampleday = as.numeric(tn.summer$sampleday)
 
-keep.june = which(stoich.summer$samplemonth == 6 & stoich.summer$sampleday >= 15)
-keep.july = which(stoich.summer$samplemonth == 7)
-keep.august = which(stoich.summer$samplemonth == 8)
-keep.september = which(stoich.summer$samplemonth==9 & stoich.summer$sampleday <= 15)
+tp.summer$sampleday = format(tp.summer$sampledate, "%d")
+tp.summer$sampleday = as.numeric(tp.summer$sampleday)
+
+keep.june = which(tn.summer$samplemonth == 6 & tn.summer$sampleday >= 15)
+keep.july = which(tn.summer$samplemonth == 7)
+keep.august = which(tn.summer$samplemonth == 8)
+keep.september = which(tn.summer$samplemonth==9 & tn.summer$sampleday <= 15)
 keep.all = c(keep.june, keep.july, keep.august, keep.september)
 keep.all = as.numeric(keep.all)
 
-stoich.summer = stoich.summer[keep.all, ]
+tn.summer = tn.summer[keep.all, ]
+
+keep.june = which(tp.summer$samplemonth == 6 & tp.summer$sampleday >= 15)
+keep.july = which(tp.summer$samplemonth == 7)
+keep.august = which(tp.summer$samplemonth == 8)
+keep.september = which(tp.summer$samplemonth==9 & tp.summer$sampleday <= 15)
+keep.all = c(keep.june, keep.july, keep.august, keep.september)
+keep.all = as.numeric(keep.all)
+
+tp.summer = tp.summer[keep.all, ]
 
 #remove all points where TN:TP > 1000. This is based on data from Downing & McCauley, where
 #the max epilimnetic value from the world's lakes was ~ 552. A rough doubling of that gives TN:TP (molar)
