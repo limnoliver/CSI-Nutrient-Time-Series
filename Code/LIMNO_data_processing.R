@@ -66,12 +66,6 @@ keep.all = as.numeric(keep.all)
 
 tp.summer = tp.summer[keep.all, ]
 
-#remove all points where TN:TP > 1000. This is based on data from Downing & McCauley, where
-#the max epilimnetic value from the world's lakes was ~ 552. A rough doubling of that gives TN:TP (molar)
-#of 1,000, to be conservative. This gets rid of 64 observations
-
-stoich.summer = stoich.summer[stoich.summer$tn_tp_umol < 1000, ]
-
 #a function that allows you to calculate SE (and other stats)
 #by groups in a data frame
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
