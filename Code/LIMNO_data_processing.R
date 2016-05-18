@@ -170,16 +170,11 @@ for (j in 1:length(unique(modern.tp.e10$lagoslakeid))) {
 lakes = unique(modern.tp.e10$lagoslakeid)[keep == TRUE]
 modern.tp.e10 = modern.tp.e10[modern.tp.e10$lagoslakeid %in% lakes, ]
 
-#we gain 17 lakes (90 to 107) by changing the filter rule
-keep.id = lakes[keep == TRUE]
-modern.10 = modern.10[which(modern.10$lagoslakeid %in% keep.id), ]
-
 # create a mixed model where the nutrient is the response, year is the 
 # the predictor, and slopes and intercepts are allowed to vary by lake (grouping)
 
-modern.15$sampleyear_cor = modern.15$sampleyear - 1990
-modern.10$sampleyear_cor = modern.10$sampleyear - 1990
-modern$sampleyear_cor = modern$sampleyear - 1990
+modern.tp.e10$sampleyear_cor = modern.tp.e10$sampleyear - 1990
+modern.tn.e10$sampleyear_cor = modern.tn.e10$sampleyear - 1990
 
 ## create a column where tn, tp, tn:tp are standardized by the 
 ## initial (1990 or first year) concentration in the lake
