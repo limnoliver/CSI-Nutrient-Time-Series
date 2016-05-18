@@ -134,9 +134,9 @@ modern.tp = year.means.tp[year.means.tp$sampleyear > 1989, ]
 # one in 1990-2000, 2001-2011
 keep.10 = c()
 
-for (i in 1:length(unique(modern.tp$lagoslakeid))) {
-  lake = unique(modern.tp$lagoslakeid)[i]
-  years = modern.tp$sampleyear[modern.tp$lagoslakeid == lake]
+for (i in 1:length(unique(modern.tn$lagoslakeid))) {
+  lake = unique(modern.tn$lagoslakeid)[i]
+  years = modern.tn$sampleyear[modern.tn$lagoslakeid == lake]
   
   test.10 = c(length(which(years %in% c(1990:2000)))>0, 
               length(which(years %in% c(2001:2011)))>0)
@@ -154,20 +154,21 @@ modern.tn.e10 = modern.tn[modern.tn$lagoslakeid %in% lakes.10, ]
 modern.tp.e10 = modern.tp[modern.tp$lagoslakeid %in% lakes.10, ]
 
 # i = years, j = lakes
-lakes = unique(modern.10$lagoslakeid)
+lakes = unique(modern.tp.e10$lagoslakeid)
 years = c(1990:2011)
 keep = c()
-for (j in 1:length(unique(modern.10$lagoslakeid))) {
-  lake.years = modern.10$sampleyear[modern.10$lagoslakeid == lakes[j]]
-  overlap = years %in% lake.years
-  overlap = data.frame(lengths = rle(overlap)[[1]], values = rle(overlap)[[2]])
-  test = which(overlap$lengths >=5 & overlap$values == FALSE)
-  if (length(test) > 0){
-    keep[j] = FALSE
-  } else {
+for (j in 1:length(unique(modern.tp.e10$lagoslakeid))) {
+  lake.years = modern.tp.e10$sampleyear[modern.tp.e10$lagoslakeid == lakes[j]]
+  spread = max(lake.years) - min(lake.years)
+  if (spread > 4){
     keep[j] = TRUE
+  } else {
+    keep[j] = FALSE
   }
 }
+
+lakes = unique(modern.tp.e10$lagoslakeid)[keep == TRUE]
+modern.tp.e10 = modern.tp.e10[modern.tp.e10$lagoslakeid %in% lakes, ]
 
 #we gain 17 lakes (90 to 107) by changing the filter rule
 keep.id = lakes[keep == TRUE]
