@@ -142,8 +142,6 @@ newmap <- getMap(resolution = "high")
 plot(newmap, xlim = c(-98, -66), ylim = c(34, 50), asp = 1)
 
 pdf("TN_directional_change.pdf")
-map(database = "state", regions=
-                                  projection="albers", par=c(lat0=48,lat1=37))
 
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
                                   "Indiana","Michigan","Ohio", "Pennsylvania","New York",
@@ -458,7 +456,7 @@ dev.off()
 
 ## create a map that shows how many year records the lake has
 library(plyr)
-counts = count(data.tn, vars = "lagoslakeid")
+counts = count(data.tp, vars = "lagoslakeid")
 counts = merge(counts, data.lake.specific[,c(1,3,4)], "lagoslakeid", all.x = TRUE)
 
 
@@ -481,18 +479,18 @@ dev.off()
 pdf("hist_TN_TP_vals.pdf")
 par(mar = c(5,5,4,2))
 
-hist(log10(dat$tn_umol*14), breaks = 20, 
-     main="", xlab = "TN or TP (ug/L)", ylab = "Number of lakes", bty="l", freq = TRUE, 
-     cex.lab = 1.8, cex.axis = 1.3, xaxt = "n", col = col.tn, xlim = c(0,5))
-hist(log10(dat$tp_umol*30.9), breaks = 20, add = TRUE, col = col.tp)
-axis(side = 1, labels = c(1,10,100,1000,10000), at = c(0,1,2,3,4), cex.axis = 1.3)
+hist(log10(data.tn$tn_umol), breaks = 20, 
+     main="", xlab = "TN or TP (umol)", ylab = "Density", bty="l", freq = FALSE, 
+     cex.lab = 1.8, cex.axis = 1.3, xaxt = "n", col = col.tn, xlim = c(-2,3))
+hist(log10(data.tp$tp_umol), breaks = 20, add = TRUE, col = col.tp, freq = FALSE)
+axis(side = 1, labels = c(0.01,0.1,1,10,100,1000), at = c(-2,-1,0,1,2,3), cex.axis = 1.3)
 
 
 # add legend
-legend(.3, 1100, c("TN", "TP"), fill= c(col.tn, col.tp), cex = 1.2)
+legend(-2, 1, c("TN", "TP"), fill= c(col.tn, col.tp), cex = 1.2)
 
-text(3,200,"1118", cex = 2, col = "white")
-text(1.4,200,"53", cex = 2, col = "white")
+text(1.8,.2,paste(round(mean(data.tn$tn_umol),0)), cex = 2.5, col = "white")
+text(-0.2,0.2,paste(round(mean(data.tp$tp_umol),0)), cex = 2.5, col = "white")
 dev.off()
 
 
@@ -563,3 +561,42 @@ hist(change.db$tp.slopes, col=col.tp, breaks=20,
 
 
 dev.off()
+
+############################
+## create dotplot that shows bias in type of lakes that we sample
+############################
+
+names(data.tn)
+lake.info = data.lake.specific[,c(1,5,12,26,32,38)]
+lakes.tn = data.frame(lagoslakeid = unique(data.tp[,1]))
+lakes.tp = data.frame(lagoslakeid = unique(data.tp[,1]))
+
+tn = merge(lakes.tn, lake.info, by = "lagoslakeid", all.x = TRUE)
+tp = merge(lakes.tp, lake.info, by = "lagoslakeid", all.x = TRUE)
+
+## calculate population and sample statistics
+# area
+area = aggregate(data.lake.specific$lake_area_ha, by = list(data.lake.specific$state_name), mean)
+names(area) = c("state", "area")
+
+# max depth
+depth = aggregate(data.lake.specific$maxdepth, by = list(data.lake.specific$state_name), mean, na.rm = TRUE)
+names(depth) = c("state", "depth")
+
+# watershed area to lake area ratio
+data.lake.specific$wsala = data.lake.specific$iws_areaha/data.lake.specific$lake_area_ha
+
+wsala = aggregate(data.lake.specific$wsala, by = list(data.lake.specific$state_name), mean, na.rm = TRUE)
+names(wsala) = c("state", "wsala")
+
+# lake connectivity as proportion isolated (seepage lakes)
+
+prop.iso <- function(x) {
+  n.lakes = length(x)
+  n.iso = as.numeric(summary(x)[4])
+  return(n.iso/n.lakes)
+}
+
+connectivity = aggregate(data.lake.specific$lakeconnectivity, by = list(data.lake.specific$state_name), prop.iso)
+names(connectivity) = c("state", "connectivity")
+
