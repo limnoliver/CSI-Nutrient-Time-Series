@@ -53,6 +53,15 @@ lake.conv = dat[,c(1,8)]
 lake.conv = unique(lake.conv)
 change.db.tn = merge(change.db.tn, lake.conv, by = "lake_num", all.x = TRUE)
 
+setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
+data.lake.specific = read.table("lagos_lakes_10541.txt", 
+                                header = TRUE, 
+                                sep = "\t", 
+                                quote = "", 
+                                dec = ".", 
+                                strip.white = TRUE,
+                                comment.char = "")
+
 lake.info = data.lake.specific[,c("lagoslakeid", "nhd_lat", "nhd_long")]
 
 
@@ -568,7 +577,7 @@ dev.off()
 
 names(data.tn)
 lake.info = data.lake.specific[,c(1,5,12,26,32,38)]
-lakes.tn = data.frame(lagoslakeid = unique(data.tp[,1]))
+lakes.tn = data.frame(lagoslakeid = unique(data.tn[,1]))
 lakes.tp = data.frame(lagoslakeid = unique(data.tp[,1]))
 
 tn = merge(lakes.tn, lake.info, by = "lagoslakeid", all.x = TRUE)
@@ -578,16 +587,34 @@ tp = merge(lakes.tp, lake.info, by = "lagoslakeid", all.x = TRUE)
 # area
 area = aggregate(data.lake.specific$lake_area_ha, by = list(data.lake.specific$state_name), mean)
 names(area) = c("state", "area")
+area.sample.tn = aggregate(tn$lake_area_ha, by = list(tn$state_name), mean)
+area.sample.tp = aggregate(tp$lake_area_ha, by = list(tp$state_name), mean)
+names(area.sample.tn) = c("state", "area")
+names(area.sample.tp) = c("state", "area")
 
 # max depth
 depth = aggregate(data.lake.specific$maxdepth, by = list(data.lake.specific$state_name), mean, na.rm = TRUE)
 names(depth) = c("state", "depth")
 
+depth.sample.tn = aggregate(tn$maxdepth, by = list(tn$state_name), mean, na.rm = TRUE)
+depth.sample.tp = aggregate(tp$maxdepth, by = list(tp$state_name), mean, na.rm = TRUE)
+names(depth.sample.tn) = c("state", "depth")
+names(depth.sample.tp) = c("state", "depth")
+
+
 # watershed area to lake area ratio
 data.lake.specific$wsala = data.lake.specific$iws_areaha/data.lake.specific$lake_area_ha
+tn$wsala = tn$iws_areaha/tn$lake_area_ha
+tp$wsala = tp$iws_areaha/tp$lake_area_ha
 
 wsala = aggregate(data.lake.specific$wsala, by = list(data.lake.specific$state_name), mean, na.rm = TRUE)
+wsala.sample.tn = aggregate(tn$wsala, by = list(tn$state_name), mean, na.rm = TRUE)
+wsala.sample.tp = aggregate(tp$wsala, by = list(tp$state_name), mean, na.rm = TRUE)
+
+
 names(wsala) = c("state", "wsala")
+names(wsala.sample.tn) = c("state", "wsala")
+names(wsala.sample.tp) = c("state", "wsala")
 
 # lake connectivity as proportion isolated (seepage lakes)
 
@@ -600,3 +627,139 @@ prop.iso <- function(x) {
 connectivity = aggregate(data.lake.specific$lakeconnectivity, by = list(data.lake.specific$state_name), prop.iso)
 names(connectivity) = c("state", "connectivity")
 
+connectivity.sample.tn = aggregate(tn$lakeconnectivity, by = list(tn$state_name), prop.iso)
+connectivity.sample.tp = aggregate(tp$lakeconnectivity, by = list(tp$state_name), prop.iso)
+names(connectivity.sample.tn) = c("state", "connectivity")
+names(connectivity.sample.tp) = c("state", "connectivity")
+
+# proportion of lakes in population
+
+abundance = aggregate(data.lake.specific$lagoslakeid, by = list(data.lake.specific$state_name), length)
+names(abundance) = c("state", "abundance")
+abundance$abundance = abundance$abundance/length(data.lake.specific$lagoslakeid)
+
+abundance.sample.tn = aggregate(tn$lagoslakeid, by = list(tn$state_name), length)
+names(abundance.sample.tn) = c("state", "abundance.sample.tn")
+abundance.sample.tn$abundance.sample.tn = abundance.sample.tn$abundance.sample.tn/length(tn$lagoslakeid)
+
+abundance.sample.tp = aggregate(tp$lagoslakeid, by = list(tp$state_name), length)
+names(abundance.sample.tp) = c("state", "abundance.sample.tp")
+abundance.sample.tp$abundance.sample.tp = abundance.sample.tp$abundance.sample.tp/length(tp$lagoslakeid)
+
+## create dataframes for population, tn and tp
+
+population = as.data.frame(cbind(area$area, depth$depth,  wsala$wsala, connectivity$connectivity, abundance$abundance))
+names(population) = c("area", "depth", "wsala", "connectivity", "abundance")
+population$state = area$state
+population = population[c(1:13,15:18),]
+population = droplevels(population)
+order = order(-population$abundance)
+population = population[order(-population$abundance),]
+
+sample.tn = as.data.frame(cbind(area.sample.tn$area, depth.sample.tn$depth,  wsala.sample.tn$wsala, connectivity.sample.tn$connectivity, abundance.sample.tn$abundance))
+names(sample.tn) = c("area", "depth", "wsala", "connectivity", "abundance")
+sample.tn$state = area.sample.tn$state
+sample.tn[18,5:6] = c(0, "New Jersey")
+sample.tn$abundance = as.numeric(sample.tn$abundance)
+sample.tn = sample.tn[c(1:12,14:18),]
+sample.tn = droplevels(sample.tn)
+sample.tn = sample.tn[order(sample.tn$state),]
+sample.tn = sample.tn[order, ]
+
+sample.tp = as.data.frame(cbind(area.sample.tp$area, depth.sample.tp$depth,  wsala.sample.tp$wsala, connectivity.sample.tp$connectivity, abundance.sample.tp$abundance))
+names(sample.tp) = c("area", "depth", "wsala", "connectivity", "abundance")
+sample.tp$state = area.sample.tp$state
+sample.tp[17,5:6] = c(0, "New Jersey")
+sample.tp[18,5:6] = c(0, "Ohio")
+sample.tp$abundance = as.numeric(sample.tp$abundance)
+sample.tp = sample.tp[c(1:11,13:18),]
+sample.tp = droplevels(sample.tp)
+sample.tp = sample.tp[order(sample.tp$state),]
+
+
+## now create a dotplot that shows comparison of these stats
+library(Hmisc)
+plot.new()
+
+pdf("Prop_state_dotplot.pdf")
+par(mfrow=c(1,2), cex = 1, oma = c(1,5,2,1))
+dotchart2(population$abundance, labels = population$state,dotsize = 2, xlim = c(-.07,.4), xlab = "Proportion of Lakes", bty= "L",width.factor = .2)
+dotchart2(sample.tn$abundance,  dotsize = 2, add = TRUE, col = col.tn)
+dotchart2(sample.tp$abundance,  dotsize = 2, add = TRUE, col = col.tp)
+
+
+dotchart2(population$connectivity, labels = "", xlim = c(-.07,.6), dotsize = 2, xlab = "Proportion Seepage Lakes", mar = c(5,3,4,2))
+dotchart2(sample.tn$connectivity, add = TRUE, col = col.tn, dotsize = 2)
+dotchart2(sample.tp$connectivity, add = TRUE, col = col.tp, dotsize = 2)
+
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend(-.5,.85, legend = c("Population", "TN Sample", "TP Sample"), 
+       pch = 16, pt.cex = 2, bty = "n", col = c("black", col.tn, col.tp), cex =1, horiz = TRUE, text.width = c(0,.3,.3))
+dev.off()
+
+pdf("Morphology_state_dotplot.pdf")
+par(mfrow=c(1,3), cex = 1, oma = c(0,5,3,3))
+par(mar=c(5,0,0,0))
+
+
+dotchart2(log10(population$area), labels = population$state,dotsize = 2, xlim = c(0,6), xlab = "log Area (ha)", bty= "L", width.factor = .2)
+dotchart2(log10(sample.tn$area),  dotsize = 2, add = TRUE, col = col.tn)
+dotchart2(log10(sample.tp$area),  dotsize = 2, add = TRUE, col = col.tp)
+
+dotchart2(log10(population$depth), labels = "", xlim = c(0,2.1), dotsize = 2, xlab = "log Max Depth (m)")
+dotchart2(log10(sample.tn$depth), add = TRUE, col = col.tn, dotsize = 2)
+dotchart2(log10(sample.tp$depth), add = TRUE, col = col.tp, dotsize = 2)
+
+dotchart2(log10(sample.tp$wsala), col = col.tp, xlim = c(0,3.5), labels = "",  dotsize = 2, xlab = "log WS:Lake Area", mar = c(0,0,0,4))
+dotchart2(log10(population$wsala), add = TRUE, dotsize = 2)
+dotchart2(log10(sample.tn$wsala), add = TRUE, col = col.tn, dotsize = 2)
+
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend(-.5,1, legend = c("Population", "TN Sample", "TP Sample"), 
+       pch = 16, pt.cex = 2, bty = "n", col = c("black", col.tn, col.tp), cex =1, horiz = TRUE, text.width = c(0,.3,.3))
+dev.off()
+
+## Make random plots of raw data from lakes with significant change
+
+#randomly select 6 lakes with significant TN or TP trends
+lakes.sig.tn = sample(1:length(which(change.db.tn$tn.change != "no change")), 6)
+lakes.sig.tn = as.character(change.db.tn$lagoslakeid[change.db.tn$tn.change != "no change"][lakes.sig.tn])
+
+lakes.sig.tp = sample(1:length(which(change.db.tp$tp.change != "no change")), 6)
+lakes.sig.tp = as.character(change.db.tp$lagoslakeid[change.db.tp$tp.change != "no change"][lakes.sig.tp])
+
+#no plot raw data from each of these lakes
+
+pdf("TN_random_change.pdf", height = 5, width = 12)
+par(mfrow = c(2,3), oma = c(0,0,0,0), mar = c(2,3,2,1))
+for (i in 1:length(lakes.sig.tn)){
+  plot(data.tn$tn_umol[data.tn$lagoslakeid == lakes.sig.tn[i]]~data.tn$sampleyear_cor[data.tn$lagoslakeid == lakes.sig.tn[i]],
+       main = paste(lakes.sig.tn[i]), 
+       #xlab = "Year (post 1990)", 
+       #ylab = "TN (umol)", 
+       #cex.lab = 2,
+       ylab = "",
+       xlab = "",
+       cex.axis = 1.5, 
+       cex = 1.8, 
+       pch = 16)
+}
+dev.off()
+
+pdf("TP_random_change.pdf", height= 5, width = 12)
+par(mfrow = c(2,3), oma = c(0,0,0,0), mar = c(2,3,2,1))
+for (i in 1:length(lakes.sig.tp)){
+  plot(data.tp$tp_umol[data.tp$lagoslakeid == lakes.sig.tp[i]]~data.tp$sampleyear_cor[data.tp$lagoslakeid == lakes.sig.tp[i]],
+       main = paste(lakes.sig.tp[i]), 
+       #xlab = "Year (post 1990)", 
+       #ylab = "TP (umol)",
+       xlab = "", 
+       ylab = "",
+       cex.lab = 2,
+       cex.axis = 1.5, 
+       cex = 1.8, 
+       pch = 16)
+}
+dev.off()
