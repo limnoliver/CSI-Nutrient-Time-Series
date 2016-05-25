@@ -763,3 +763,14 @@ for (i in 1:length(lakes.sig.tp)){
        pch = 16)
 }
 dev.off()
+
+#find lakes on map
+par(mar=c(0,0,0,0))
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = TRUE, col = "lightgray")
+points(change.db.tp$nhd_long,change.db.tp$nhd_lat, 
+       pch = 16, cex = .8, col = "darkgray")
+points(change.db.tp$nhd_long[change.db.tp$lagoslakeid == 8294],change.db.tp$nhd_lat[change.db.tp$lagoslakeid == 8294], 
+       pch = 16, cex = .8, col = "red")
