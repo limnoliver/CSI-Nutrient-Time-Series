@@ -1,5 +1,7 @@
 library(reshape)
-setwd("~/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
+setwd('~/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1')
+setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
+
 data = read.table("lagos_epi_nutr_10541.txt", 
                   header = TRUE, 
                   sep = "\t", 
@@ -17,6 +19,8 @@ data.lake.specific = read.table("lagos_lakes_10541.txt",
                                 comment.char = "")
 #Calculate TN from TKN
 data$tn_calculated = data$tkn + data$no2no3
+data$tn_combined = data$tn
+data$tn_combined[is.na(data$tn_combined) == TRUE] = data$tn_calculated[is.na(data$tn_combined) == TRUE]
 
 for (i in 1:nrow(data)){
   if (is.na(data$tn[i]) == TRUE) {
@@ -62,44 +66,6 @@ stoich.summer = stoich.summer[keep.all, ]
 
 stoich.summer = stoich.summer[stoich.summer$tn_tp_umol < 1000, ]
 
-#a function that allows you to calculate SE (and other stats)
-#by groups in a data frame
-summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
-                      conf.interval=.95, .drop=TRUE) {
-  require(plyr)
-  
-  # New version of length which can handle NA's: if na.rm==T, don't count them
-  length2 <- function (x, na.rm=FALSE) {
-    if (na.rm) sum(!is.na(x))
-    else       length(x)
-  }
-  
-  # This does the summary. For each group's data frame, return a vector with
-  # N, mean, and sd
-  datac <- ddply(data, groupvars, .drop=.drop,
-                 .fun = function(xx, col) {
-                   c(N    = length2(xx[[col]], na.rm=na.rm),
-                     mean = mean   (xx[[col]], na.rm=na.rm),
-                     sd   = sd     (xx[[col]], na.rm=na.rm)
-                   )
-                 },
-                 measurevar
-  )
-  
-  # Rename the "mean" column    
-  datac <- rename(datac, c("mean" = measurevar))
-  
-  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
-  
-  # Confidence interval multiplier for standard error
-  # Calculate t-statistic for confidence interval: 
-  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
-  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
-  datac$ci <- datac$se * ciMult
-  
-  return(datac)
-}
-
 #find mean, coefficient of variance (covar) and number of observations
 #for TN:TP, TN, TP in each lake for every year of observation
 intra.annual.tntp = aggregate(stoich.summer$tn_tp_umol, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
@@ -138,6 +104,7 @@ year.means = data.frame(lagoslakeid = year.means.tntp$lagoslakeid,
                         tn_tp_umol = year.means.tntp$tn_tp_umol,
                         secchi = year.means.secchi$secchi,
                         nobs = year.means.tntp$nobs)
+
 #limit analysis to only 1990-present
 modern = year.means[year.means$sampleyear > 1989, ]
 
