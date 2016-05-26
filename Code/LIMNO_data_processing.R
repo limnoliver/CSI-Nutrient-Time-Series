@@ -32,6 +32,7 @@ for (i in 1:nrow(data)){
 tn = data[is.na(data$tn_combined)==FALSE, ]
 tp = data[is.na(data$tp)==FALSE, ]
 
+
 #create molar version of nutrients
 tn$tn_umol = tn$tn_combined/14.01
 tp$tp_umol = tp$tp/30.97
