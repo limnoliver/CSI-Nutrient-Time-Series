@@ -116,9 +116,28 @@ year.means = rbind(year.means, iowa[,c(2:8)])
 #limit analysis to only 1990-present
 modern = year.means[year.means$sampleyear > 1989, ]
 
-#we gain 17 lakes (90 to 107) by changing the filter rule
-keep.id = lakes[keep == TRUE]
-modern.10 = modern.10[which(modern.10$lagoslakeid %in% keep.id), ]
+#limit to lakes that have at least one observation in each decade of time extent
+# one in 1990-2000, 2001-2011
+keep.10 = c()
+
+for (i in 1:length(unique(modern$lagoslakeid))) {
+  lake = unique(modern$lagoslakeid)[i]
+  years = modern$sampleyear[modern$lagoslakeid == lake]
+  
+  test.10 = c(length(which(years %in% c(1990:2000)))>0, 
+              length(which(years %in% c(2001:2011)))>0)
+  
+  
+  if (length(which(test.10 == FALSE)) > 0) {
+    keep.10[i] = FALSE
+  } else {
+    keep.10[i] = TRUE
+  }
+}
+
+lakes.10 = unique(modern$lagoslakeid)[keep.10 == TRUE]
+modern.e10 = modern[modern$lagoslakeid %in% lakes.10, ]
+
 
 # create a mixed model where the nutrient is the response, year is the 
 # the predictor, and slopes and intercepts are allowed to vary by lake (grouping)
