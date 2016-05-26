@@ -33,6 +33,7 @@ tn.slopes.sd = as.numeric(output_TN_01[c((n.tn+1):(n.tn*2)),2])
 tn.slope.pop = as.numeric(output_TN_01[rownames(output_TN_01)=="mu.beta", 1])
 tn.slope.sd = as.numeric(output_TN_01[rownames(output_TN_01)=="mu.beta", 2])
 
+
 change.db.tp = data.frame(tp.slopes = tp.slopes, 
                        tp.ints = tp.ints,
                        tp.slopes.sd = tp.slopes.sd, 
@@ -52,6 +53,23 @@ change.db.tn$lake_num = c(1:n.tn)
 lake.conv = dat[,c(1,8)]
 lake.conv = unique(lake.conv)
 change.db.tn = merge(change.db.tn, lake.conv, by = "lake_num", all.x = TRUE)
+
+# create dataframe of change values for post 2006 data
+n.tp.07 = 1671
+tp.slopes.07 = as.numeric(output_TP_07[c((n.tp.07+1):(2*n.tp.07)),1])
+tp.slopes.07 = data.frame(tp.slopes.07 = tp.slopes.07, lake_num = c(1:n.tp.07))
+lake.conv = dat[,c(1,8)]
+lake.conv = unique(lake.conv)
+tp.slopes.07 = merge(tp.slopes.07, lake.conv, by = "lake_num", all.x = TRUE)
+
+
+n.tn.07 = 568
+tn.slopes.07 = as.numeric(output_TN_07[c((n.tn.07+1):(2*n.tn.07)),1])
+tn.slopes.07 = data.frame(tn.slopes.07 = tn.slopes.07, lake_num = c(1:n.tn.07))
+lake.conv = dat[,c(1,8)]
+lake.conv = unique(lake.conv)
+tn.slopes.07 = merge(tn.slopes.07, lake.conv, by = "lake_num", all.x = TRUE)
+
 
 setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
 data.lake.specific = read.table("lagos_lakes_10541.txt", 
@@ -100,6 +118,12 @@ change.db.tp$tp.slopes.p = (1-2*pnorm(-abs(change.db.tp$tp.slopes.z)))*(change.d
 
 change.db.tn$tn.slopes.z = change.db.tn$tn.slopes/change.db.tn$tn.slopes.sd
 change.db.tn$tn.slopes.p = (1-2*pnorm(-abs(change.db.tn$tn.slopes.z)))*(change.db.tn$tn.slopes/(abs(change.db.tn$tn.slopes)))
+
+
+## merge change dbs with slopes calculated post 2006
+
+change.db.tp = merge(change.db.tp, tp.slopes.07[,c(2,3)], by = "lagoslakeid", all.x = TRUE)
+change.db.tn = merge(change.db.tn, tn.slopes.07[,c(2,3)], by = "lagoslakeid", all.x = TRUE)
 
 ## create histograms of probabilities
 pdf("TN_TP_change_prob.pdf")
@@ -185,8 +209,52 @@ points(change.db.tp$nhd_long[change.db.tp$tp.change=="negative"], change.db.tp$n
 legend(-83, 49.5, c("Increasing", "Decreasing", "No Change"), fill= c(col.both, col.tp, col.no.change))
 dev.off()
 
+# create a map of lakes with longterm records in both N and P, 
+# plot change on map following symbols of TN vs TP plot
 
-## create a figure that plots TN change vs TP change
+pdf("map_TNTP_directional_change.pdf")
+par(mar=c(0,0,0,0), oma = c(0,0,0,0))
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = TRUE, col = "lightgray")
+
+temp.tn = change.db.tn[change.db.tn$lagoslakeid %in% change.db.tp$lagoslakeid,]
+temp = merge(temp.tn, change.db.tp[,c(1,9)], by = "lagoslakeid", all.x = TRUE)
+
+#first plot points where there is no change
+points(temp$nhd_long[temp$tn.change=="no change" & temp$tp.change=="no change"], temp$nhd_lat[temp$tn.change=="no change" & temp$tp.change=="no change"], 
+       cex=1.2, pch = 1, col = "darkgray")
+
+#plot lakes where tn is not changing, tp is going up
+points(temp$nhd_long[temp$tn.change=="no change" & temp$tp.change=="positive"], temp$nhd_lat[temp$tn.change=="no change" & temp$tp.change=="positive"], 
+       cex=1.2, col = "black", pch=24, bg = col.tp)
+
+#plot lakes where tn is not changing, tp is going down
+points(temp$nhd_long[temp$tn.change=="no change" & temp$tp.change=="negative"], temp$nhd_lat[temp$tn.change=="no change" & temp$tp.change=="negative"], 
+       cex=1.2, col = "black", pch=25, bg = col.tp)
+
+#plot lakes where tn is going up, no change in tp
+points(temp$nhd_long[temp$tn.change=="positive" & temp$tp.change=="no change"], temp$nhd_lat[temp$tn.change=="positive" & temp$tp.change=="no change"], 
+       cex=1.2, col = "black", pch=24, bg = col.tn)
+
+#plot lakes where tn is going down, no change in tp
+points(temp$nhd_long[temp$tn.change=="negative" & temp$tp.change=="no change"], temp$nhd_lat[temp$tn.change=="negative" & temp$tp.change=="no change"], 
+       cex=1.2, col = "black", pch=25, bg = col.tn)
+
+
+#plot lakes where both nutrients are going up
+points(temp$nhd_long[temp$tn.change=="positive" & temp$tp.change=="positive"], temp$nhd_lat[temp$tn.change=="positive" & temp$tp.change=="positive"], 
+       cex=1.2, col = "black", pch=24, bg = col.both)
+
+#plot lakes where both nutrients are going down
+points(temp$nhd_long[temp$tn.change=="negative" & temp$tp.change=="negative"], temp$nhd_lat[temp$tn.change=="negative" & temp$tp.change=="negative"], 
+       cex=1.2, col = "black", pch=24, bg = col.both)
+
+dev.off()
+#####################################################
+## create a figure that plots %TN change vs %TP change
+#####################################################
 temp.tn = 100*change.db.tn$tn.slopes[change.db.tn$lagoslakeid %in% change.db.tp$lagoslakeid]
 temp.tp = 100*change.db.tp$tp.slopes[change.db.tp$lagoslakeid %in% change.db.tn$lagoslakeid]
 temp.tn.change = change.db.tn$tn.change[change.db.tn$lagoslakeid %in% change.db.tp$lagoslakeid]
@@ -231,7 +299,9 @@ abline(v=0, col = col.tp, lwd = 3)
 
 dev.off()
 
+##################################
 ## create fig of lake-specific slopes and intercepts and predictors
+##################################
 
 dat.unique = dat[,c(1,2,10:13,24:31)]
 dat.unique = unique(dat.unique)
@@ -267,8 +337,10 @@ legend(-2.5, -0.04, c("Increasing", "Decreasing", "No Change"), fill= c(col.both
 
 dev.off()
 
-
+#########################################
 ## plot a mock up of hierarchical methods
+#########################################
+
 pdf("TP_all_1.pdf")
 par(mar=c(5,5,1,1))
 
@@ -335,7 +407,10 @@ points(data.tp.loc$nhd_long,data.tp.loc$nhd_lat,
 text(-82, 48.5, "6210 lakes - 58,016 TN obs")
 dev.off()
 
+######################################
 ## create a map that shows how many year records the lake has
+#######################################
+
 library(plyr)
 counts = count(data.tp, vars = "lagoslakeid")
 counts = merge(counts, data.lake.specific[,c(1,3,4)], "lagoslakeid", all.x = TRUE)
@@ -356,7 +431,10 @@ legend(-83, 49,
        col = col.tn)
 dev.off()
 
+###################################################
 ## create a histogram of mean tn & tp observations
+###################################################
+
 pdf("hist_TN_TP_vals.pdf")
 par(mar = c(5,5,4,2))
 
@@ -394,43 +472,6 @@ abline(3.2, .001, col = "blue", lwd = 2)
 
 dev.off()
 
-## Tn vs TP model changes
-
-pdf("TN_TP_change_mod.pdf")
-par(mar=c(5,5,1,1))
-temp.tn = 100*change.db$tn.slopes
-temp.tp = 100*change.db$tp.slopes
-#TN up, TP no change
-plot(temp.tn[change.db$tn.change == "positive" & change.db$tp.change == "no change"]~temp.tp[change.db$tn.change == "positive" & change.db$tp.change == "no change"], 
-     xlab = "% Change in TP per year", 
-     ylab = "% Change in TN per year", 
-     cex = 1.5, cex.lab = 2, cex.axis = 1.5,  col = "black", pch=24, bg = col.tn,
-     xlim = c(-8,6), ylim = c(-6, 3))
-# Tn no change, TP no change
-points(temp.tn[change.db$tn.change == "no change" & change.db$tp.change == "no change"]~temp.tp[change.db$tn.change == "no change" & change.db$tp.change == "no change"],
-      pch=1, cex = 1.5)
-#TN up, TP up
-points(temp.tn[change.db$tn.change == "positive" & change.db$tp.change == "positive"]~temp.tp[change.db$tn.change == "positive" & change.db$tp.change == "positive"],
-       col = "black", bg = col.both, pch=24, cex = 1.5)
-#TN down, TP down
-points(temp.tn[change.db$tn.change == "negative" & change.db$tp.change == "negative"]~temp.tp[change.db$tn.change == "negative" & change.db$tp.change == "negative"],
-       col = "black", bg = col.both, pch=25, cex = 1.5)
-#TN down, TP no change
-points(temp.tn[change.db$tn.change == "negative" & change.db$tp.change == "no change"]~temp.tp[change.db$tn.change == "negative" & change.db$tp.change == "no change"],
-       col = "black", bg = col.tn, pch=25, cex = 1.5)
-#TN no change, TP down
-points(temp.tn[change.db$tn.change == "no change" & change.db$tp.change == "negative"]~temp.tp[change.db$tn.change == "no change" & change.db$tp.change == "negative"],
-       col = "black", bg = col.tp, pch=25, cex = 1.5)
-#TN no change, TP up
-points(temp.tn[change.db$tn.change == "no change" & change.db$tp.change == "positive"]~temp.tp[change.db$tn.change == "no change" & change.db$tp.change == "positive"],
-       col = "black", bg = col.tp, pch=24, cex = 1.5)
-
-abline(0,1, lwd = 3, lty = 3)
-abline(h=0, col = col.tn, lwd = 3)
-abline(v=0, col = col.tp, lwd = 3)
-
-
-dev.off()
 
 ## create histograms of estimates of % change
 jpeg("TN_TP_change_hist.jpg", height=200, width=800)
@@ -443,9 +484,9 @@ hist(change.db$tp.slopes, col=col.tp, breaks=20,
 
 dev.off()
 
-############################
+############################################################
 ## create dotplot that shows bias in type of lakes that we sample
-############################
+############################################################
 
 names(data.tn)
 lake.info = data.lake.specific[,c(1,5,12,26,32,38)]
@@ -645,4 +686,34 @@ map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","
 points(change.db.tp$nhd_long,change.db.tp$nhd_lat, 
        pch = 16, cex = .8, col = "darkgray")
 points(change.db.tp$nhd_long[change.db.tp$lagoslakeid == 8294],change.db.tp$nhd_lat[change.db.tp$lagoslakeid == 8294], 
-       pch = 16, cex = .8, col = "red")
+       pch = 16, cex = .8, col = "red") 
+
+###############################################
+## create figures showing change in TN and TP from after 1990
+## to change in TN and TP after 2000
+pdf("slopes_2007_comparison.pdf", height = 8, width = 12)
+par(mfrow = c(1,2), mar=c(5,5,0,0), oma = c(0,4,1,1))
+plot(change.db.tp$tp.slopes.07 ~ change.db.tp$tp.slopes, 
+     pch = 1,  cex = 1.5, col = "gray47", xlab = "% Change per year > 1990", 
+     ylab = "% Change per year > 2007", cex.lab = 1.5, cex.axis = 1.2)
+points(change.db.tp$tp.slopes.07[change.db.tp$tp.change == "negative"] ~ change.db.tp$tp.slopes[change.db.tp$tp.change == "negative"], 
+     pch = 21, bg = col.tp, cex = 1.5)
+points(change.db.tp$tp.slopes.07[change.db.tp$tp.change == "positive"] ~ change.db.tp$tp.slopes[change.db.tp$tp.change == "positive"], 
+       pch = 21, bg = col.both, cex = 1.5)
+text(x = -.1, y = .2, "1990: -0.02% per year \n2007: -0.16% per year", pos = 4, cex = 1.5)
+legend("bottomright", legend = c("TN Not Changing", "TN Increasing", "TN Decreasing"), pch = c(1,21,21), pt.bg = c(NA, col.both, col.tp), pt.cex = 1.5, cex = 1.2)
+abline(0,1)
+
+plot(change.db.tn$tn.slopes.07 ~ change.db.tn$tn.slopes, 
+     pch = 1,  cex = 1.5, col = "gray47", xlab = "% Change per year > 1990", 
+     ylab = "", cex.lab = 1.5, cex.axis = 1.2)
+points(change.db.tn$tn.slopes.07[change.db.tn$tn.change == "negative"] ~ change.db.tn$tn.slopes[change.db.tn$tn.change == "negative"], 
+       pch = 21, bg = col.tn, cex = 1.5)
+points(change.db.tn$tn.slopes.07[change.db.tn$tn.change == "positive"] ~ change.db.tn$tn.slopes[change.db.tn$tn.change == "positive"], 
+       pch = 21, bg = col.both, cex = 1.5)
+text(x = -.06, y = .17, "1990: -0.67% per year \n2007: 1.4% per year", pos = 4, cex = 1.5)
+legend("bottomright", legend = c("TN Not Changing", "TN Increasing", "TN Decreasing"), pch = c(1,21,21), pt.bg = c(NA, col.both, col.tn), pt.cex = 1.5, cex = 1.2)
+abline(0,1)
+dev.off()
+
+
