@@ -22,14 +22,6 @@ data$tn_calculated = data$tkn + data$no2no3
 data$tn_combined = data$tn
 data$tn_combined[is.na(data$tn_combined) == TRUE] = data$tn_calculated[is.na(data$tn_combined) == TRUE]
 
-for (i in 1:nrow(data)){
-  if (is.na(data$tn[i]) == TRUE) {
-    data$tn_combined[i] = data$tn_calculated[i]
-  } else {
-    data$tn_combined[i] = data$tn[i]
-  }
-}
-
 #create a data subset which only includes instances where
 #both TP and TN_combined exist
 
