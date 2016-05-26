@@ -138,12 +138,24 @@ for (i in 1:length(unique(modern$lagoslakeid))) {
 lakes.10 = unique(modern$lagoslakeid)[keep.10 == TRUE]
 modern.e10 = modern[modern$lagoslakeid %in% lakes.10, ]
 
+# function to make sure a lake has observations that are atleast 5 years apart
+# i = years, j = lakes
+lakes = unique(modern.e10$lagoslakeid)
+years = c(1990:2011)
+keep = c()
+for (j in 1:length(unique(modern.e10$lagoslakeid))) {
+  lake.years = modern.e10$sampleyear[modern.e10$lagoslakeid == lakes[j]]
+  spread = max(lake.years) - min(lake.years)
+  if (spread > 4){
+    keep[j] = TRUE
+  } else {
+    keep[j] = FALSE
+  }
+}
 
-# create a mixed model where the nutrient is the response, year is the 
-# the predictor, and slopes and intercepts are allowed to vary by lake (grouping)
+lakes = unique(modern.e10$lagoslakeid)[keep == TRUE]
+modern.e10 = modern.e10[modern.e10$lagoslakeid %in% lakes, ]
 
-modern.15$sampleyear_cor = modern.15$sampleyear - 1990
-modern.10$sampleyear_cor = modern.10$sampleyear - 1990
 modern$sampleyear_cor = modern$sampleyear - 1990
 
 ## create a column where tn, tp, tn:tp are standardized by the 
