@@ -105,6 +105,20 @@ year.means = data.frame(lagoslakeid = year.means.tntp$lagoslakeid,
                         secchi = year.means.secchi$secchi,
                         nobs = year.means.tntp$nobs)
 
+# merge with Iowa data that was received from J. Downing and has been 
+# processed in the file "Iowa lakes import.R" 
+
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
+iowa = read.csv("Iowa_LAGOS merged.csv", header = TRUE)
+
+year.means.tn = rbind(year.means.tn, iowa[,c(2,3,4,7,8)])
+year.means.tp = rbind(year.means.tp, iowa[,c(2,3,5,7,8)])
+
+#limit analysis to only 1990-present
+modern.tn = year.means.tn[year.means.tn$sampleyear > 1989, ]
+modern.tp = year.means.tp[year.means.tp$sampleyear > 1989, ]
+
+
 #limit analysis to only 1990-present
 modern = year.means[year.means$sampleyear > 1989, ]
 
