@@ -111,45 +111,10 @@ year.means = data.frame(lagoslakeid = year.means.tntp$lagoslakeid,
 setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
 iowa = read.csv("Iowa_LAGOS merged.csv", header = TRUE)
 
-year.means.tn = rbind(year.means.tn, iowa[,c(2,3,4,7,8)])
-year.means.tp = rbind(year.means.tp, iowa[,c(2,3,5,7,8)])
-
-#limit analysis to only 1990-present
-modern.tn = year.means.tn[year.means.tn$sampleyear > 1989, ]
-modern.tp = year.means.tp[year.means.tp$sampleyear > 1989, ]
-
+year.means = rbind(year.means, iowa[,c(2:8)])
 
 #limit analysis to only 1990-present
 modern = year.means[year.means$sampleyear > 1989, ]
-
-#limit analysis to only lakes that have >= 15 years of data post-1990
-#first, calculate how many years of observation each lake has (plus calculate mean stoich over all years)
-duration = aggregate(modern$tn_tp_umol, by=list(modern$lagoslakeid), FUN=function(x) c(mean=mean(x),sd=sd(x),covar=sd(x)/mean(x), nobs=length(x)))
-
-#create a list of lagoslakeid of each lake that has >= 15 years of data
-modern.15 = modern[modern$lagoslakeid %in% duration$Group.1[duration$x[,4]>=15], ]
-
-#create a list of lagoslakeid of each lake that has >= 10 years of data 
-modern.10 = modern[modern$lagoslakeid %in% duration$Group.1[duration$x[,4]>=10], ]
-
-#further limit the modern.10 analysis to lakes where there is no more than
-#5 consecutive years with no observations
-
-# i = years, j = lakes
-lakes = unique(modern.10$lagoslakeid)
-years = c(1990:2011)
-keep = c()
-for (j in 1:length(unique(modern.10$lagoslakeid))) {
-  lake.years = modern.10$sampleyear[modern.10$lagoslakeid == lakes[j]]
-  overlap = years %in% lake.years
-  overlap = data.frame(lengths = rle(overlap)[[1]], values = rle(overlap)[[2]])
-  test = which(overlap$lengths >=5 & overlap$values == FALSE)
-  if (length(test) > 0){
-    keep[j] = FALSE
-  } else {
-    keep[j] = TRUE
-  }
-}
 
 #we gain 17 lakes (90 to 107) by changing the filter rule
 keep.id = lakes[keep == TRUE]
