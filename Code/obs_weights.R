@@ -14,7 +14,8 @@ area.groups = cut2(pop$lake_area_ha, g=5, onlycuts = TRUE)
   n.group = as.numeric(summary(as.factor(x)))
   return(n.group/n.lakes)
 }
-  
+
+    
 state.area = aggregate(pop$area_groups, by = list(pop$state_name), prop.area)
 state.area =  data.frame(state = state.area$Group.1, area_1 = state.area$x[,1], 
                          area_2 = state.area$x[,2], area_3 = state.area$x[,3], 
