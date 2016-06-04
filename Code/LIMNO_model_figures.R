@@ -15,7 +15,7 @@ col.no.change = "darkgray"
 #change to match the number of lakes in each database
 n.tn = 833
 n.tp = 2096
-
+n.tntp = 742
 # create data frame of % change values
 
 tp.ints = as.numeric(output_TP_01[c(1:n.tp),1])
@@ -33,6 +33,13 @@ tn.slopes.sd = as.numeric(output_TN_01[c((n.tn+1):(n.tn*2)),2])
 tn.slope.pop = as.numeric(output_TN_01[rownames(output_TN_01)=="mu.beta", 1])
 tn.slope.sd = as.numeric(output_TN_01[rownames(output_TN_01)=="mu.beta", 2])
 
+tntp.ints = as.numeric(output_TNTP[c(1:n.tntp),1])
+tntp.ints.sd = as.numeric(output_TNTP[c(1:n.tntp),2])
+tntp.slopes = as.numeric(output_TNTP[c((n.tntp+1):(n.tntp*2)),1])
+tntp.slopes.sd = as.numeric(output_TNTP[c((n.tntp+1):(n.tntp*2)),2])
+tntp.slope.pop = as.numeric(output_TNTP[rownames(output_TNTP)=="mu.beta", 1])
+tntp.slope.sd = as.numeric(output_TNTP[rownames(output_TNTP)=="mu.beta", 2])
+
 
 change.db.tp = data.frame(tp.slopes = tp.slopes, 
                        tp.ints = tp.ints,
@@ -42,6 +49,10 @@ change.db.tn = data.frame(tn.slopes = tn.slopes,
                           tn.ints = tn.ints,
                           tn.slopes.sd = tn.slopes.sd, 
                           tn.ints.sd = tn.ints.sd)
+change.db.tntp = data.frame(tntp.slopes = tntp.slopes, 
+                          tntp.ints = tntp.ints,
+                          tntp.slopes.sd = tntp.slopes.sd, 
+                          tntp.ints.sd = tntp.ints.sd)
 ## create dataframe that matches lake number to lagoslakeid
 
 change.db.tp$lake_num = c(1:n.tp)
@@ -53,6 +64,11 @@ change.db.tn$lake_num = c(1:n.tn)
 lake.conv = dat[,c(1,8)]
 lake.conv = unique(lake.conv)
 change.db.tn = merge(change.db.tn, lake.conv, by = "lake_num", all.x = TRUE)
+
+change.db.tntp$lake_num = c(1:n.tntp)
+lake.conv = dat[,c(1,10)]
+lake.conv = unique(lake.conv)
+change.db.tntp = merge(change.db.tntp, lake.conv, by = "lake_num", all.x = TRUE)
 
 # create dataframe of change values for post 2006 data
 n.tp.07 = 1671
@@ -85,7 +101,7 @@ lake.info = data.lake.specific[,c("lagoslakeid", "nhd_lat", "nhd_long")]
 
 change.db.tp = merge(change.db.tp, lake.info, by = "lagoslakeid", all.x = TRUE)
 change.db.tn = merge(change.db.tn, lake.info, by = "lagoslakeid", all.x = TRUE)
-
+change.db.tntp = merge(change.db.tntp, lake.info, by = "lagoslakeid", all.x = TRUE)
 for (i in c(1:n.tp)) {
   if (change.db.tp$tp.slopes[i]-(1.645*change.db.tp$tp.slopes.sd[i]) > 0) {
     change.db.tp$tp.change[i] = "positive"
@@ -106,6 +122,17 @@ for (i in c(1:n.tn)) {
       change.db.tn$tn.change[i] = "negative"
     } else {
       change.db.tn$tn.change[i] = "no change"
+    }
+  }
+}
+for (i in c(1:n.tntp)) {
+  if (change.db.tntp$tntp.slopes[i]-(1.645*change.db.tntp$tntp.slopes.sd[i]) > 0) {
+    change.db.tntp$tntp.change[i] = "positive"
+  } else {
+    if (change.db.tntp$tntp.slopes[i]+(1.645*change.db.tntp$tntp.slopes.sd[i]) < 0) {
+      change.db.tntp$tntp.change[i] = "negative"
+    } else {
+      change.db.tntp$tntp.change[i] = "no change"
     }
   }
 }
