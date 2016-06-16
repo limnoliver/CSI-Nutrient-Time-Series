@@ -16,6 +16,7 @@ col.no.change = "darkgray"
 n.tn = 833
 n.tp = 2096
 n.tntp = 742
+n.chl = 2143
 # create data frame of % change values
 
 tp.ints = as.numeric(output_TP_01[c(1:n.tp),1])
@@ -40,6 +41,12 @@ tntp.slopes.sd = as.numeric(output_TNTP[c((n.tntp+1):(n.tntp*2)),2])
 tntp.slope.pop = as.numeric(output_TNTP[rownames(output_TNTP)=="mu.beta", 1])
 tntp.slope.sd = as.numeric(output_TNTP[rownames(output_TNTP)=="mu.beta", 2])
 
+chl.ints = as.numeric(output_chl[c(1:n.chl),1])
+chl.ints.sd = as.numeric(output_chl[c(1:n.chl),2])
+chl.slopes = as.numeric(output_chl[c((n.chl+1):(n.chl*2)),1])
+chl.slopes.sd = as.numeric(output_chl[c((n.chl+1):(n.chl*2)),2])
+chl.slope.pop = as.numeric(output_chl[rownames(output_chl)=="mu.beta", 1])
+chl.slope.sd = as.numeric(output_chl[rownames(output_chl)=="mu.beta", 2])
 
 change.db.tp = data.frame(tp.slopes = tp.slopes, 
                        tp.ints = tp.ints,
@@ -53,6 +60,11 @@ change.db.tntp = data.frame(tntp.slopes = tntp.slopes,
                           tntp.ints = tntp.ints,
                           tntp.slopes.sd = tntp.slopes.sd, 
                           tntp.ints.sd = tntp.ints.sd)
+change.db.chl = data.frame(chl.slopes = chl.slopes, 
+                            chl.ints = chl.ints,
+                            chl.slopes.sd = chl.slopes.sd, 
+                            chl.ints.sd = chl.ints.sd)
+
 ## create dataframe that matches lake number to lagoslakeid
 
 change.db.tp$lake_num = c(1:n.tp)
@@ -69,6 +81,11 @@ change.db.tntp$lake_num = c(1:n.tntp)
 lake.conv = dat[,c(1,10)]
 lake.conv = unique(lake.conv)
 change.db.tntp = merge(change.db.tntp, lake.conv, by = "lake_num", all.x = TRUE)
+
+change.db.chl$lake_num = c(1:n.chl)
+lake.conv = dat[,c(1,7)]
+lake.conv = unique(lake.conv)
+change.db.chl = merge(change.db.chl, lake.conv, by = "lake_num", all.x = TRUE)
 
 # create dataframe of change values for post 2006 data
 n.tp.07 = 1671
@@ -102,6 +119,8 @@ lake.info = data.lake.specific[,c("lagoslakeid", "nhd_lat", "nhd_long")]
 change.db.tp = merge(change.db.tp, lake.info, by = "lagoslakeid", all.x = TRUE)
 change.db.tn = merge(change.db.tn, lake.info, by = "lagoslakeid", all.x = TRUE)
 change.db.tntp = merge(change.db.tntp, lake.info, by = "lagoslakeid", all.x = TRUE)
+change.db.chl = merge(change.db.chl, lake.info, by = "lagoslakeid", all.x = TRUE)
+
 for (i in c(1:n.tp)) {
   if (change.db.tp$tp.slopes[i]-(1.645*change.db.tp$tp.slopes.sd[i]) > 0) {
     change.db.tp$tp.change[i] = "positive"
@@ -125,6 +144,7 @@ for (i in c(1:n.tn)) {
     }
   }
 }
+
 for (i in c(1:n.tntp)) {
   if (change.db.tntp$tntp.slopes[i]-(1.645*change.db.tntp$tntp.slopes.sd[i]) > 0) {
     change.db.tntp$tntp.change[i] = "positive"
@@ -137,6 +157,17 @@ for (i in c(1:n.tntp)) {
   }
 }
 
+for (i in c(1:n.chl)) {
+  if (change.db.chl$chl.slopes[i]-(1.645*change.db.chl$chl.slopes.sd[i]) > 0) {
+    change.db.chl$chl.change[i] = "positive"
+  } else {
+    if (change.db.chl$chl.slopes[i]+(1.645*change.db.chl$chl.slopes.sd[i]) < 0) {
+      change.db.chl$chl.change[i] = "negative"
+    } else {
+      change.db.chl$chl.change[i] = "no change"
+    }
+  }
+}
 
 ## calculate probability of change > or < 0 for each lake
 ## create histograms of probability of change
@@ -151,6 +182,13 @@ change.db.tn$tn.slopes.p = (1-2*pnorm(-abs(change.db.tn$tn.slopes.z)))*(change.d
 
 change.db.tp = merge(change.db.tp, tp.slopes.07[,c(2,3)], by = "lagoslakeid", all.x = TRUE)
 change.db.tn = merge(change.db.tn, tn.slopes.07[,c(2,3)], by = "lagoslakeid", all.x = TRUE)
+
+
+## create dataframe with all slopes (TP, TN, CHL, TNTP)
+
+change.db.all = merge(change.db.chl, change.db.tp, by = "lagoslakeid", all = TRUE)
+change.db.all = merge(change.db.all, change.db.tn, by = "lagoslakeid", all = TRUE)
+change.db.all = change.db.all[,c(1,3,9,11,17,22,28)]
 
 ## create histograms of probabilities
 pdf("TN_TP_change_prob.pdf")
