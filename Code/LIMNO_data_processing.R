@@ -25,7 +25,7 @@ data$tn_combined[which(is.na(data$tn_combined) == TRUE)] = data$tn_calculated[wh
 
 tn = data[is.na(data$tn_combined)==FALSE, ]
 tp = data[is.na(data$tp)==FALSE, ]
-
+chl = data[is.na(data$chla)==FALSE, ]
 
 #create molar version of nutrients
 tn$tn_umol = tn$tn_combined/14.01
@@ -35,6 +35,7 @@ tp$tp_umol = tp$tp/30.97
 # first, just keep samples in JUN, JUL, AUG, SEP
 tn.summer = tn[tn$samplemonth == 6|tn$samplemonth == 7|tn$samplemonth==8|tn$samplemonth==9, ]
 tp.summer = tp[tp$samplemonth == 6|tp$samplemonth == 7|tp$samplemonth==8|tp$samplemonth==9, ]
+chl.summer = chl[chl$samplemonth == 6|chl$samplemonth == 7|chl$samplemonth==8|chl$samplemonth==9, ]
 
 # now, get rid of first half of June and second half of Sept
 tn.summer$sampleday = format(tn.summer$sampledate, "%d")
@@ -42,6 +43,9 @@ tn.summer$sampleday = as.numeric(tn.summer$sampleday)
 
 tp.summer$sampleday = format(tp.summer$sampledate, "%d")
 tp.summer$sampleday = as.numeric(tp.summer$sampleday)
+
+chl.summer$sampleday = format(chl.summer$sampledate, "%d")
+chl.summer$sampleday = as.numeric(chl.summer$sampleday)
 
 keep.june = which(tn.summer$samplemonth == 6 & tn.summer$sampleday >= 15)
 keep.july = which(tn.summer$samplemonth == 7)
@@ -61,13 +65,22 @@ keep.all = as.numeric(keep.all)
 
 tp.summer = tp.summer[keep.all, ]
 
+keep.june = which(chl.summer$samplemonth == 6 & chl.summer$sampleday >= 15)
+keep.july = which(chl.summer$samplemonth == 7)
+keep.august = which(chl.summer$samplemonth == 8)
+keep.september = which(chl.summer$samplemonth==9 & chl.summer$sampleday <= 15)
+keep.all = c(keep.june, keep.july, keep.august, keep.september)
+keep.all = as.numeric(keep.all)
+
+chl.summer = chl.summer[keep.all, ]
+
 #find mean, coefficient of variance (covar) and number of observations
 #for TN:TP, TN, TP in each lake for every year of observation
 intra.annual.tn = aggregate(tn.summer$tn_umol, tn.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 intra.annual.tp = aggregate(tp.summer$tp_umol, tp.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 intra.annual.tn.secchi = aggregate(tn.summer$secchi, tn.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x), sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 intra.annual.tp.secchi = aggregate(tp.summer$secchi, tp.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x), sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
-
+intra.annual.chl = aggregate(chl.summer$chla, chl.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 
 year.means.tn = data.frame(lagoslakeid = intra.annual.tn$lagoslakeid, 
                              sampleyear = intra.annual.tn$sampleyear, 
@@ -84,6 +97,13 @@ year.means.tp = data.frame(lagoslakeid = intra.annual.tp$lagoslakeid,
                            sd = intra.annual.tp$x[,2], 
                            covar = intra.annual.tp$x[,3], 
                            nobs = intra.annual.tp$x[,4])
+
+year.means.chl = data.frame(lagoslakeid = intra.annual.chl$lagoslakeid,
+                            sampleyear = intra.annual.chl$sampleyear, 
+                            chl = intra.annual.chl$x[,1], 
+                            sd = intra.annual.chl$x[,2], 
+                            covar = intra.annual.chl$x[,3], 
+                            nobs = intra.annual.chl$x[,4])
 
 
 year.means.tn.secchi = data.frame(lagoslakeid = intra.annual.tn.secchi$lagoslakeid, 
@@ -112,6 +132,7 @@ year.means.tp = data.frame(lagoslakeid = year.means.tp$lagoslakeid,
                            secchi = year.means.tp.secchi$secchi,
                            nobs = year.means.tp$nobs)
 
+
 # merge with Iowa data that was received from J. Downing and has been 
 # processed in teh file "Iowa lakes import.R"
 
@@ -124,11 +145,13 @@ year.means.tp = rbind(year.means.tp, iowa[,c(2,3,5,7,8)])
 #limit analysis to only 1990-present
 modern.tn = year.means.tn[year.means.tn$sampleyear > 1989, ]
 modern.tp = year.means.tp[year.means.tp$sampleyear > 1989, ]
+modern.chl = year.means.chl[year.means.chl$sampleyear > 1989, ]
 
 #limit to lakes that have at least one observation in each decade of time extent
 # one in 1990-2000, 2001-2011
-keep.10 = c()
 
+occurance.filter <- function(x) {
+keep.10 = c()
 for (i in 1:length(unique(modern.tn$lagoslakeid))) {
   lake = unique(modern.tn$lagoslakeid)[i]
   years = modern.tn$sampleyear[modern.tn$lagoslakeid == lake]
@@ -142,6 +165,8 @@ for (i in 1:length(unique(modern.tn$lagoslakeid))) {
   } else {
     keep.10[i] = TRUE
   }
+}
+return(keep.10)
 }
 
 lakes.10 = unique(modern.tn$lagoslakeid)[keep.10 == TRUE]
