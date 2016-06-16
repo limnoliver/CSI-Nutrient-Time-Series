@@ -152,9 +152,9 @@ modern.chl = year.means.chl[year.means.chl$sampleyear > 1989, ]
 
 occurance.filter <- function(x) {
 keep.10 = c()
-for (i in 1:length(unique(modern.tn$lagoslakeid))) {
-  lake = unique(modern.tn$lagoslakeid)[i]
-  years = modern.tn$sampleyear[modern.tn$lagoslakeid == lake]
+for (i in 1:length(unique(x$lagoslakeid))) {
+  lake = unique(x$lagoslakeid)[i]
+  years = x$sampleyear[x$lagoslakeid == lake]
   
   test.10 = c(length(which(years %in% c(1990:2000)))>0, 
               length(which(years %in% c(2001:2011)))>0)
@@ -166,8 +166,11 @@ for (i in 1:length(unique(modern.tn$lagoslakeid))) {
     keep.10[i] = TRUE
   }
 }
-return(keep.10)
+lakes.10 = unique(x$lagoslakeid)[keep.10 == TRUE]
+return(x[x$lagoslakeid %in% lakes.10, ])
 }
+
+test = occurance.filter(modern.chl)
 
 lakes.10 = unique(modern.tn$lagoslakeid)[keep.10 == TRUE]
 modern.tn.e10 = modern.tn[modern.tn$lagoslakeid %in% lakes.10, ]
