@@ -47,32 +47,21 @@ tp.summer$sampleday = as.numeric(tp.summer$sampleday)
 chl.summer$sampleday = format(chl.summer$sampledate, "%d")
 chl.summer$sampleday = as.numeric(chl.summer$sampleday)
 
-keep.june = which(tn.summer$samplemonth == 6 & tn.summer$sampleday >= 15)
-keep.july = which(tn.summer$samplemonth == 7)
-keep.august = which(tn.summer$samplemonth == 8)
-keep.september = which(tn.summer$samplemonth==9 & tn.summer$sampleday <= 15)
+keep.summer <- function(x) {
+keep.june = which(x$samplemonth == 6 & x$sampleday >= 15)
+keep.july = which(x$samplemonth == 7)
+keep.august = which(x$samplemonth == 8)
+keep.september = which(x$samplemonth==9 & x$sampleday <= 15)
 keep.all = c(keep.june, keep.july, keep.august, keep.september)
 keep.all = as.numeric(keep.all)
 
-tn.summer = tn.summer[keep.all, ]
+return(x[keep.all, ])
+}
 
-keep.june = which(tp.summer$samplemonth == 6 & tp.summer$sampleday >= 15)
-keep.july = which(tp.summer$samplemonth == 7)
-keep.august = which(tp.summer$samplemonth == 8)
-keep.september = which(tp.summer$samplemonth==9 & tp.summer$sampleday <= 15)
-keep.all = c(keep.june, keep.july, keep.august, keep.september)
-keep.all = as.numeric(keep.all)
+tn.summer = keep.summer(tn.summer)
+tp.summer = keep.summer(tp.summer)
+chl.summer = keep.summer(chl.summer)
 
-tp.summer = tp.summer[keep.all, ]
-
-keep.june = which(chl.summer$samplemonth == 6 & chl.summer$sampleday >= 15)
-keep.july = which(chl.summer$samplemonth == 7)
-keep.august = which(chl.summer$samplemonth == 8)
-keep.september = which(chl.summer$samplemonth==9 & chl.summer$sampleday <= 15)
-keep.all = c(keep.june, keep.july, keep.august, keep.september)
-keep.all = as.numeric(keep.all)
-
-chl.summer = chl.summer[keep.all, ]
 
 #find mean, coefficient of variance (covar) and number of observations
 #for TN:TP, TN, TP in each lake for every year of observation
