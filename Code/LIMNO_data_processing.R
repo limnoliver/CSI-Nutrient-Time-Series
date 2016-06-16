@@ -170,18 +170,18 @@ lakes.10 = unique(x$lagoslakeid)[keep.10 == TRUE]
 return(x[x$lagoslakeid %in% lakes.10, ])
 }
 
-test = occurance.filter(modern.chl)
+modern.tn.e10 = occurance.filter(modern.tn)
+modern.tp.e10 = occurance.filter(modern.tp)
+modern.chl.e10 = occurance.filter(modern.chl)
 
-lakes.10 = unique(modern.tn$lagoslakeid)[keep.10 == TRUE]
-modern.tn.e10 = modern.tn[modern.tn$lagoslakeid %in% lakes.10, ]
-modern.tp.e10 = modern.tp[modern.tp$lagoslakeid %in% lakes.10, ]
+#limit to lakes that cover at least 5 years in duration
 
-# i = years, j = lakes
-lakes = unique(modern.tp.e10$lagoslakeid)
+duration.filter <- function(x) {
+lakes = unique(x$lagoslakeid)
 years = c(1990:2011)
 keep = c()
-for (j in 1:length(unique(modern.tp.e10$lagoslakeid))) {
-  lake.years = modern.tp.e10$sampleyear[modern.tp.e10$lagoslakeid == lakes[j]]
+for (j in 1:length(unique(x$lagoslakeid))) {
+  lake.years = x$sampleyear[x$lagoslakeid == lakes[j]]
   spread = max(lake.years) - min(lake.years)
   if (spread > 4){
     keep[j] = TRUE
@@ -189,9 +189,12 @@ for (j in 1:length(unique(modern.tp.e10$lagoslakeid))) {
     keep[j] = FALSE
   }
 }
-
-lakes = unique(modern.tp.e10$lagoslakeid)[keep == TRUE]
-modern.tp.e10 = modern.tp.e10[modern.tp.e10$lagoslakeid %in% lakes, ]
+lakes = unique(x$lagoslakeid)[keep == TRUE]
+return(x[x$lagoslakeid %in% lakes, ])
+}
+modern.chl.e10 = duration.filter(modern.chl.e10)
+modern.tp.e10 = duration.filter(modern.tp.e10)
+modern.tn.e10 = duration.filtern(modern.tn.e10)
 
 # create a mixed model where the nutrient is the response, year is the 
 # the predictor, and slopes and intercepts are allowed to vary by lake (grouping)
