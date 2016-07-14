@@ -168,6 +168,15 @@ chl.r3.test = exactRLRT(chl.m, chl.3fr23, chl.m0)
 ## Extract fixed and random effects, as well as variance components,
 ## from simulations that allow calculation of variance for each parameter
 
+mod.resim <- function(mod) {
+  name = match.call()
+  resim = REsim(mod,n.sims=10000)
+  return(c(plotREsim(resim[resim$term=="sampleyear_cor",]),
+           plotREsim(resim)$data))
+}
+           
+tntp.resim = mod.resim(tntp.3fr23)       
+
 
 
 mySumm.01 <- function(.) {
