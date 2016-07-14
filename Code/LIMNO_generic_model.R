@@ -8,11 +8,48 @@ require(maps)
 library(merTools)
 library(ggplot2)
 
-# set data you want to work with
+#2-level unconditional
+model.01 <- function(nutrient, data) {
+  return(lmer(log(nutrient) ~ 1 + (1|lagoslakeid), data = data))
+}
 
-data = modern.15
-data.name = "modern.10"
-data.short.name = "15y"
+tn.01 = model.01(data.tn$tn_umol, data.tn)
+tp.01 = model.01(data.tp$tp_umol, data.tp)
+
+
+#2-level with time
+
+model.1 <- function(nutrient, data) {
+  return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid), data = data))
+}
+
+tn.1 = model.1(data.tn$tn_umol, data.tn)
+tp.1 = model.1(data.tp$tp_umol, data.tp)
+
+#3-level unconditional
+model.02 <- function(nutrient, data) {
+  return(lmer(log(nutrient) ~ 1 + (1|lagoslakeid) + (1|hu4), data = data))
+}
+
+tn.02 = model.02(data.tn$tn_umol, data.tn)
+tp.02 = model.02(data.tp$tp_umol, data.tp)
+
+
+#3-level with time
+
+# get huc4 IDs into databases
+huc4 = data.lake.specific[,c("lagoslakeid", "hu4")]
+data.tn = merge(data.tn, huc4, by = "lagoslakeid", all.x = TRUE)
+data.tp = merge(data.tp, huc4, by = "lagoslakeid", all.x = TRUE)
+
+model.2 <- function(nutrient, data) {
+  return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4), data = data))
+}
+
+tn.2 = model.2(data.tn$tn_umol, data.tn)
+tp.2 = model.2(data.tp$tp_umol, data.tp)
+
+
 
 ## run models with standardized data to make slopes directly comparable
 tn.model = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
