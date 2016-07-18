@@ -136,7 +136,7 @@ chl.r2.test = exactRLRT(chl.m, chl.3fr23, chl.m0)
 
 ## RESULTS: in all models, the random effect time:lake is significant
 
-## TEST: whether time|region should be included as sa random effect
+## TEST: whether time|region should be included as a random effect
 
 model.m <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (0+sampleyear_cor|hu4_zoneid), data = data, REML=TRUE))
@@ -168,16 +168,38 @@ chl.r3.test = exactRLRT(chl.m, chl.3fr23, chl.m0)
 ## Extract fixed and random effects, as well as variance components,
 ## from simulations that allow calculation of variance for each parameter
 
-mod.resim <- function(mod) {
-  name = match.call()
-  resim = REsim(mod,n.sims=10000)
-  return(c(plotREsim(resim[resim$term=="sampleyear_cor",]),
-           plotREsim(resim)$data))
+mod.resim <- function(mod, dat) {
+  
+  ran = REsim(mod,n.sims=1000)
+  fix = FEsim(mod,n.sims=1000)
+  lake.ran = subset(ran, groupFctr=="lagoslakeid")
+  region.ran = subset(ran, groupFctr=="hu4_zoneid")
+  names(lake.ran)[2] = "lagoslakeid"
+  names(region.ran)[c(2)] = "hu4_zoneid"
+  region.ran = region.ran[,c(2:6)]
+  names(region.ran)[3:5] = c("hu4_mean", "hu4_med", "hu4_sd")
+  lake.regions = unique(dat[,c('lagoslakeid', 'hu4_zoneid')])
+  lake.ran = merge(lake.ran, lake.regions)
+  lake.ran = merge(lake.ran, region.ran, by = c("hu4_zoneid", "term"), all.x = TRUE)
+  
+  #calculate lake-specific intercept and slope that includes fixed and random (lake and region) effects
+  lake.ran$coef_mean[lake.ran$term=="(Intercept)"] = lake.ran$mean[lake.ran$term=="(Intercept)"] + lake.ran$hu4_mean[lake.ran$term=="(Intercept)"] + fix$mean[1]
+  lake.ran$coef_mean[lake.ran$term=="sampleyear_cor"] = lake.ran$mean[lake.ran$term=="sampleyear_cor"] + lake.ran$hu4_mean[lake.ran$term=="sampleyear_cor"] + fix$mean[2]
+  #calculate lake-specific sd of random effects that includes sd of fixed and random effects
+  lake.ran$coef_sd[lake.ran$term=="(Intercept)"] = sqrt((lake.ran$sd[lake.ran$term=="(Intercept)"])^2 + (lake.ran$hu4_sd[lake.ran$term=="(Intercept)"])^2 + (fix$sd[1])^2)
+  lake.ran$coef_sd[lake.ran$term=="sampleyear_cor"] = sqrt((lake.ran$sd[lake.ran$term=="sampleyear_cor"])^2 + (lake.ran$hu4_sd[lake.ran$term=="sampleyear_cor"])^2 + (fix$sd[2])^2)
+  
+  #find the bounds of the 90% CI
+  lake.ran$ymin = lake.ran$coef_mean - (qnorm(.95)*lake.ran$coef_sd)
+  lake.ran$ymax = lake.ran$coef_mean + (qnorm(.95)*lake.ran$coef_sd)
 }
-           
+
+ran = REsim(tntp.3fr23)
+fix = FEsim(tntp.3fr23)
+
 tntp.resim = mod.resim(tntp.3fr23)       
-
-
+plotREsim(resim[resim$term=="sampleyear_cor",])
+change.db.tntp = plotREsim(resim)$data
 
 mySumm.01 <- function(.) {
   c(intercept = fixef(.), var.resid=sigma(.)^2, var.lake = unlist(VarCorr(.)), intercept.rand = as.numeric(coef(.)))
