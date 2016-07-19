@@ -789,39 +789,85 @@ require(maptools)
 require(rgdal)
 require(sp)
 require(ggplot2)
+library(colorspace)
 
 setwd("C:/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014")
 huc4 = readOGR(dsn ="/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014", layer = "HU4_simple_wgs1984")
 
+map.data <- function(region.RE)  {
+  dat <- region.RE[[2]][region.RE[[2]]$term == "sampleyear_cor",c("hu4_zoneid", "coef_mean", "ymin", "ymax")]
+  names(dat)[1] = "ZoneID"
+  # add column that say whether the change value is different from zero
+  for (i in 1:nrow(dat)){
+    if (dat$ymin[i] > 0|dat$ymax[i]<0) {
+      dat$sig[i] = TRUE
+    } else {
+      dat$sig[i] = FALSE
+    }
+  }
+  return(dat)
+}
 
+temp.tn = map.data(change.db.tn)
+temp.tp = map.data(change.db.tp)
+temp.tntp = map.data(change.db.tntp)
+temp.chl = map.data(change.db.chl)
 
-# remove NAs to get read for plotting
-huc4_tp = huc4_tp[!is.na(huc4_tp$mean), ]
-
-
-library(colorspace)
-names(huc4_tp)[1] = "ZoneID"
-names(huc4_tn)[1] = "ZoneID"
-
-huc4 = merge(huc4, huc4_tp, by="ZoneID", all.x = TRUE)
-huc4 = merge(huc4, huc4_tn, by="ZoneID", all.x = TRUE)
-names(huc4)[25:28] = c("mean_tp", "sd_tp", "mean_tn", "sd_tn")
+huc4 = merge(huc4, temp.tn[,c(1,2,5)], by = "ZoneID", all.x = TRUE)
+names(huc4)[c(25,26)] = c("tn_slope", "tn_sig")
+huc4 = merge(huc4, temp.tp[,c(1,2,5)], by = "ZoneID", all.x = TRUE)
+names(huc4)[c(27,28)] = c("tp_slope", "tp_sig")
+huc4 = merge(huc4, temp.tntp[,c(1,2,5)], by = "ZoneID", all.x = TRUE)
+names(huc4)[c(29,30)] = c("tntp_slope", "tntp_sig")
+huc4 = merge(huc4, temp.chl[,c(1,2,5)], by = "ZoneID", all.x = TRUE)
+names(huc4)[c(31,32)] = c("chl_slope", "chl_sig")
 
 huc4@data$id = rownames(huc4@data)
 huc4=fortify(huc4, region="i")
 
-z=huc4$mean_tp*100
-# remove the lowest value because it's throwing off colors
-z[4] = NA
-col_ramp_tn = c(col.tn,col.both)
-col_ramp_tp = c(col.tp,col.both)
+get.col.bins <- function(slopes) {
+z=100*slopes
 
-zcol <- colorRampPalette(col_ramp_tp)(65)[as.numeric(cut(z, breaks = 65))]
+ii <- cut(z, breaks = c(-5,-4,-3,-2,-1,0,1,2,3,4,5), 
+          include.lowest = TRUE)
+levels(ii) <- c(rgb(5,48,97,max=255),
+                rgb(33,102,172,max=255),
+                rgb(67,147,195,max=255),
+                rgb(146,197,222,max=255),
+                rgb(209,229,240,max=255),
+                rgb(253,219,199,max=255),
+                rgb(244,165,130,max=255),
+                rgb(214,96,77,max=255),
+                rgb(178,24,43,max=255),
+                rgb(103,0,31,max=255))
+ii = as.character(ii)
+ii[is.na(ii)==TRUE] <- rgb(255,255,255,max=255)
+return(ii)
+}
 
 
-pdf("HUC4_mean_tp.pdf")
-plot(huc4,col=zcol, border="gray50", lty = 1, lwd= 1)
-plot(states[which(states$State_Name %in% LAGOS.states), ], lwd=1.1, add=TRUE)
+pdf("region_blups.pdf")
+par(mfrow=c(2,2), cex = 1)
+par(mar = c(0,0,0,0))
+plot(huc4,col=get.col.bins(huc4$tn_slope), lty = 1, lwd=1.5,border=TRUE,mar=c(0,0,1,1),oma=c(0,0,0,0))
+plot(huc4[which(huc4$tn_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
+
+#map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+#                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+#                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+#                                  "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=2,lty=3, add = TRUE)
+plot(huc4,col=get.col.bins(huc4$tp_slope), lty = 1, lwd=1.5,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
+plot(huc4[which(huc4$tp_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
+
+plot(huc4,col=get.col.bins(huc4$tntp_slope), lty = 1, lwd=1.5,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
+plot(huc4[which(huc4$tntp_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
+
+plot(huc4,col=get.col.bins(huc4$chl_slope), lty = 1, lwd=1.5,border=TRUE,mar=c(1,1,1,1))
+plot(huc4[which(huc4$chl_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
+
+
+dev.off()
+
 
 #add legend
 
