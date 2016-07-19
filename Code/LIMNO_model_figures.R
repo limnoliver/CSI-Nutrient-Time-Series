@@ -781,5 +781,134 @@ legend("bottomright", legend = c("TN Not Changing", "TN Increasing", "TN Decreas
 abline(0,1)
 dev.off()
 
+######################################################
+## create a map that plots regional random effects
+######################################################
+require(maps)
+require(maptools)
+require(rgdal)
+require(sp)
+require(ggplot2)
+
+setwd("C:/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014")
+huc4 = readOGR(dsn ="/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014", layer = "HU4_simple_wgs1984")
+
+huc4_tn_mean = as.data.frame(tapply(change.db$tn.slopes, INDEX = change.db$hu4_zoneid, FUN = mean))
+huc4_tn_sd = as.data.frame(tapply(change.db$tn.slopes, INDEX = change.db$hu4_zoneid, FUN = sd))
+huc4_tn = data.frame(hu4_zoneid = rownames(huc4_tn_mean), 
+                     mean = as.numeric(huc4_tn_mean[,1]), 
+                     sd = as.numeric(huc4_tn_sd[,1]))
+
+# remove NAs to get read for plotting
+huc4_tn = huc4_tn[!is.na(huc4_tn$mean), ]
+
+huc4_tp_mean = as.data.frame(tapply(change.db$tp.slopes, INDEX = change.db$hu4_zoneid, FUN = mean))
+huc4_tp_sd = as.data.frame(tapply(change.db$tp.slopes, INDEX = change.db$hu4_zoneid, FUN = sd))
+huc4_tp = data.frame(hu4_zoneid = rownames(huc4_tp_mean), 
+                     mean = as.numeric(huc4_tp_mean[,1]), 
+                     sd = as.numeric(huc4_tp_sd[,1]))
+
+# remove NAs to get read for plotting
+huc4_tp = huc4_tp[!is.na(huc4_tp$mean), ]
+
+
+library(colorspace)
+names(huc4_tp)[1] = "ZoneID"
+names(huc4_tn)[1] = "ZoneID"
+
+huc4 = merge(huc4, huc4_tp, by="ZoneID", all.x = TRUE)
+huc4 = merge(huc4, huc4_tn, by="ZoneID", all.x = TRUE)
+names(huc4)[25:28] = c("mean_tp", "sd_tp", "mean_tn", "sd_tn")
+
+huc4@data$id = rownames(huc4@data)
+huc4=fortify(huc4, region="i")
+
+z=huc4$mean_tp*100
+# remove the lowest value because it's throwing off colors
+z[4] = NA
+col_ramp_tn = c(col.tn,col.both)
+col_ramp_tp = c(col.tp,col.both)
+
+zcol <- colorRampPalette(col_ramp_tp)(65)[as.numeric(cut(z, breaks = 65))]
+
+
+pdf("HUC4_mean_tp.pdf")
+plot(huc4,col=zcol, border="gray50", lty = 1, lwd= 1)
+plot(states[which(states$State_Name %in% LAGOS.states), ], lwd=1.1, add=TRUE)
+
+#add legend
+
+## set the location and the colorbar gradation
+xleft <- -81.5
+xright <- -80
+ybot <- 44
+yint <- (48-44) / 65
+ytop <- ybot + yint
+
+
+## create the bar by stacking a bunch of colored rectangles
+for(c in colorRampPalette(col_ramp_tp)(65)){
+  ybot = ybot + yint
+  ytop = ytop + yint
+  rect(xleft, ybot, xright, ytop, border = NA, col = c)
+  print(c(xleft, xright, ybot, ytop, c))
+}
+
+## generate labels
+labels <- round(seq(min(z, na.rm = TRUE), max(z, na.rm = TRUE), length.out = 5),2)
+
+## add the labels to the plot
+text(c(xright + 0.0005),
+     seq(44, 48, length.out = 5),
+     labels = as.character(labels),
+     cex = 0.8,
+     pos = 4)
+text(-79.6, 48.9, "TN % Change", offset=0, cex=.9)
+rect(xleft, ytop - 65*yint, xright, ytop)
+rect(-82.5, 43.7, -76.6, 49.4)
+
+dev.off()
+
+## function to create colors around zero
+
+diverge.color <- function(start.color,end.color,min.value,max.value,mid.value=0,mid.color="ivory") 
+  
+{ 
+  # based on ideas from Maureen Kennedy, Nick Povak, and Alina Cansler 
+  
+  # creates a palette for the current session for a divergent-color 
+  # graphic with a non-symmetric range 
+  # "cuts" = the number of slices to be made in the range above and below "mid.value" 
+  
+  ramp1 <- colorRampPalette(c(start.color,mid.color)) 
+  ramp2 <- colorRampPalette(c(mid.color,end.color)) 
+  
+  # now specify the number of values on either side of "mid.value" 
+  
+  max.breaks <- length(which(z > 0))
+  min.breaks <- length(which(z < 0))+1
+  
+  num.breaks <- max.breaks + min.breaks
+  
+  low.ramp <- ramp1(min.breaks) 
+  high.ramp <- ramp2(max.breaks) 
+  
+  # now create a combined ramp from the higher values of "low.ramp" and 
+  # the lower values of "high.ramp", with the longer one using all values 
+  # high.ramp starts at 2 to avoid duplicating zero 
+  
+  myColors <- c(low.ramp,high.ramp[2:max.breaks]) 
+  
+  myColors 
+} 
+
+test = diverge.color(start.color = col_ramp_tn[1], "black", min(z, na.rm = TRUE), max(z, na.rm = TRUE), mid.value = 0, mid.color = "lightgray")
+test = test[as.numeric(cut(z, breaks = 41, na.rm = TRUE))]
+
+test2 = diverge.color(start.color = col_ramp_tn[1], "black", min(z, na.rm = TRUE), max(z, na.rm = TRUE), mid.value = 0, mid.color = "lightgray")
+
+
+plot(huc4,col=test, border="gray50", lty = 1, lwd= 1)
+
 
 
