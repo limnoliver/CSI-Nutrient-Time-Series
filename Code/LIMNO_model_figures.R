@@ -793,20 +793,7 @@ require(ggplot2)
 setwd("C:/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014")
 huc4 = readOGR(dsn ="/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014", layer = "HU4_simple_wgs1984")
 
-huc4_tn_mean = as.data.frame(tapply(change.db$tn.slopes, INDEX = change.db$hu4_zoneid, FUN = mean))
-huc4_tn_sd = as.data.frame(tapply(change.db$tn.slopes, INDEX = change.db$hu4_zoneid, FUN = sd))
-huc4_tn = data.frame(hu4_zoneid = rownames(huc4_tn_mean), 
-                     mean = as.numeric(huc4_tn_mean[,1]), 
-                     sd = as.numeric(huc4_tn_sd[,1]))
 
-# remove NAs to get read for plotting
-huc4_tn = huc4_tn[!is.na(huc4_tn$mean), ]
-
-huc4_tp_mean = as.data.frame(tapply(change.db$tp.slopes, INDEX = change.db$hu4_zoneid, FUN = mean))
-huc4_tp_sd = as.data.frame(tapply(change.db$tp.slopes, INDEX = change.db$hu4_zoneid, FUN = sd))
-huc4_tp = data.frame(hu4_zoneid = rownames(huc4_tp_mean), 
-                     mean = as.numeric(huc4_tp_mean[,1]), 
-                     sd = as.numeric(huc4_tp_sd[,1]))
 
 # remove NAs to get read for plotting
 huc4_tp = huc4_tp[!is.na(huc4_tp$mean), ]
