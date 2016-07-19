@@ -207,51 +207,18 @@ mod.resim <- function(mod, dat) {
   return(list(lake.ran, region.ran, ran, fix))
 }
 
-change.db.tn = 
+# 1 = lake-specific random effects
+# 2 = region-specific random effects
+# 3 = random effects
+# 4 = fixed effects
+
+change.db.tn = mod.resim(tn.3fr23, data.tn)
+change.db.tp = mod.resim(tp.3fr23, data.tp)
 change.db.tntp = mod.resim(tntp.3fr23, data.tntp)       
+change.db.chl = mod.resim(chl.3fr23, data.chl)
 
-
-plotREsim(resim[resim$term=="sampleyear_cor",])
+plotREsim(change.db.chl[[3]][change.db.chl[[3]]$term=="sampleyear_cor",])
 change.db.tntp = plotREsim(resim)$data
-
-mySumm.01 <- function(.) {
-  c(intercept = fixef(.), var.resid=sigma(.)^2, var.lake = unlist(VarCorr(.)), intercept.rand = as.numeric(coef(.)))
-}
-
-mySumm.01 <- function(.) {
-  as.numeric(ranef(.))
-}
-
-sumBoot <- function(merBoot) {
-  return(
-    data.frame(fit = apply(merBoot$t, 2, function(x) as.numeric(quantile(x, probs=.5, na.rm=TRUE))),
-               lwr = apply(merBoot$t, 2, function(x) as.numeric(quantile(x, probs=.025, na.rm=TRUE))),
-               upr = apply(merBoot$t, 2, function(x) as.numeric(quantile(x, probs=.975, na.rm=TRUE)))
-    )
-  )
-}
-
-sumfun = function(.) {
-  c(ranef(.)$lagoslakeid[,1], 
-}
-
-booty = as.data.frame(bootMer(tn.01, sumfun, nsim = 1000,
-                              use.u = FALSE))
-
-booty.2 = bootMer(tn.01, sumfun, nsim = 1000,
-                                use.u = FALSE, type = "parametric")
-n.boot = 1000
-sumBoot <- function(merBoot) {
-  return(
-    data.frame(fit = apply(merBoot$t, 2, function(x) mean(x)),
-               lwr = apply(merBoot$t, 2, function(x) mean(x) - (qt(.90, df = n.boot-1)*(sd(x)/sqrt(n.boot)))),
-               upr = apply(merBoot$t, 2, function(x) mean(x) + (qt(.90, df = n.boot-1)*(sd(x)/sqrt(n.boot))))
-    )
-  )
-}
-
-PI.booty.2 <- sumBoot(booty.2)
-
 
 tn.01 = lmer(log(tn_umol) ~ 1 + (1|hu4_zoneid), data = data.tn, REML = TRUE)
 
