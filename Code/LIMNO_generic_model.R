@@ -189,15 +189,28 @@ mod.resim <- function(mod, dat) {
   lake.ran$coef_sd[lake.ran$term=="(Intercept)"] = sqrt((lake.ran$sd[lake.ran$term=="(Intercept)"])^2 + (lake.ran$hu4_sd[lake.ran$term=="(Intercept)"])^2 + (fix$sd[1])^2)
   lake.ran$coef_sd[lake.ran$term=="sampleyear_cor"] = sqrt((lake.ran$sd[lake.ran$term=="sampleyear_cor"])^2 + (lake.ran$hu4_sd[lake.ran$term=="sampleyear_cor"])^2 + (fix$sd[2])^2)
   
+  #calculate region-specific intercept and slope that includes fixed and random (region) effects
+  region.ran$coef_mean[region.ran$term=="(Intercept)"] = region.ran$hu4_mean[region.ran$term=="(Intercept)"]  + fix$mean[1]
+  region.ran$coef_mean[region.ran$term=="sampleyear_cor"] = region.ran$hu4_mean[region.ran$term=="sampleyear_cor"] + fix$mean[2]
+
+  #calculate region-specific sd of random effects that includes sd of fixed and random effects
+  region.ran$coef_sd[region.ran$term=="(Intercept)"] = sqrt((region.ran$hu4_sd[region.ran$term=="(Intercept)"])^2 + (fix$sd[1])^2)
+  region.ran$coef_sd[region.ran$term=="sampleyear_cor"] = sqrt((region.ran$hu4_sd[region.ran$term=="sampleyear_cor"])^2 + (fix$sd[2])^2)
+  
   #find the bounds of the 90% CI
   lake.ran$ymin = lake.ran$coef_mean - (qnorm(.95)*lake.ran$coef_sd)
   lake.ran$ymax = lake.ran$coef_mean + (qnorm(.95)*lake.ran$coef_sd)
+  
+  region.ran$ymin = region.ran$coef_mean - (qnorm(.95)*region.ran$coef_sd)
+  region.ran$ymax = region.ran$coef_mean + (qnorm(.95)*region.ran$coef_sd)
+
+  return(list(lake.ran, region.ran, ran, fix))
 }
 
-ran = REsim(tntp.3fr23)
-fix = FEsim(tntp.3fr23)
+change.db.tn = 
+change.db.tntp = mod.resim(tntp.3fr23, data.tntp)       
 
-tntp.resim = mod.resim(tntp.3fr23)       
+
 plotREsim(resim[resim$term=="sampleyear_cor",])
 change.db.tntp = plotREsim(resim)$data
 
