@@ -1,5 +1,6 @@
 library(reshape)
 setwd("~/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
+setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
 data = read.table("lagos_epi_nutr_10541.txt", 
                   header = TRUE, 
                   sep = "\t", 
@@ -8,6 +9,7 @@ data = read.table("lagos_epi_nutr_10541.txt",
                   strip.white = TRUE, 
                   comment.char = "", 
                   colClasses=c(sampledate = "POSIXct"))
+
 data.lake.specific = read.table("lagos_lakes_10541.txt", 
                                 header = TRUE, 
                                 sep = "\t", 
@@ -130,7 +132,7 @@ iowa = read.csv("Iowa_LAGOS merged.csv", header = TRUE)
 year.means.tn = rbind(year.means.tn, iowa[,c(2,3,4,7,8)])
 year.means.tp = rbind(year.means.tp, iowa[,c(2,3,5,7,8)])
 year.means.tntp = rbind(year.means.tntp, iowa[,c(2,3,6,8)])
-
+year.means.chl = rbind(year.means.chl, iowa[,c(2,3,8,9)])
 #limit analysis to only 1990-present
 modern.tn = year.means.tn[year.means.tn$sampleyear > 1989, ]
 modern.tp = year.means.tp[year.means.tp$sampleyear > 1989, ]
