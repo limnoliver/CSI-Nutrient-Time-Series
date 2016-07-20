@@ -232,9 +232,9 @@ abline(v = 0, col = "red", lwd = 2, lty = 2)
 
 dev.off()
 
-
+#################################################
 # create a map with pos/neg change in TN and TP
-
+#################################################
 library(rworldmap)
 newmap <- getMap(resolution = "high")
 plot(newmap, xlim = c(-98, -66), ylim = c(34, 50), asp = 1)
@@ -794,6 +794,7 @@ library(colorspace)
 setwd("C:/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014")
 huc4 = readOGR(dsn ="/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014", layer = "HU4_simple_wgs1984")
 
+#function to extract regional random effects and add significance column for plotting
 map.data <- function(region.RE)  {
   dat <- region.RE[[2]][region.RE[[2]]$term == "sampleyear_cor",c("hu4_zoneid", "coef_mean", "ymin", "ymax")]
   names(dat)[1] = "ZoneID"
@@ -813,6 +814,7 @@ temp.tp = map.data(change.db.tp)
 temp.tntp = map.data(change.db.tntp)
 temp.chl = map.data(change.db.chl)
 
+#merge nutrient values with shapefile
 huc4 = merge(huc4, temp.tn[,c(1,2,5)], by = "ZoneID", all.x = TRUE)
 names(huc4)[c(25,26)] = c("tn_slope", "tn_sig")
 huc4 = merge(huc4, temp.tp[,c(1,2,5)], by = "ZoneID", all.x = TRUE)
@@ -825,21 +827,22 @@ names(huc4)[c(31,32)] = c("chl_slope", "chl_sig")
 huc4@data$id = rownames(huc4@data)
 huc4=fortify(huc4, region="i")
 
-get.col.bins <- function(slopes) {
+get.col.bins <- function(slopes, alpha=1) {
 z=100*slopes
 
 ii <- cut(z, breaks = c(-5,-4,-3,-2,-1,0,1,2,3,4,5), 
           include.lowest = TRUE)
-levels(ii) <- c(rgb(5,48,97,max=255),
-                rgb(33,102,172,max=255),
-                rgb(67,147,195,max=255),
-                rgb(146,197,222,max=255),
-                rgb(209,229,240,max=255),
-                rgb(253,219,199,max=255),
-                rgb(244,165,130,max=255),
-                rgb(214,96,77,max=255),
-                rgb(178,24,43,max=255),
-                rgb(103,0,31,max=255))
+
+levels(ii) <- c(rgb(5,48,97,max=255, alpha=alpha),
+                rgb(33,102,172,max=255, alpha=alpha),
+                rgb(67,147,195,max=255, alpha=alpha),
+                rgb(146,197,222,max=255, alpha=alpha),
+                rgb(209,229,240,max=255, alpha=alpha),
+                rgb(253,219,199,max=255, alpha=alpha),
+                rgb(244,165,130,max=255, alpha=alpha),
+                rgb(214,96,77,max=255, alpha=alpha),
+                rgb(178,24,43,max=255, alpha=alpha),
+                rgb(103,0,31,max=255, alpha=alpha))
 ii = as.character(ii)
 ii[is.na(ii)==TRUE] <- rgb(255,255,255,max=255)
 return(ii)
@@ -847,101 +850,87 @@ return(ii)
 
 
 pdf("region_blups.pdf")
-par(mfrow=c(2,2), cex = 1)
+par(mfrow=c(4,1), cex = 1)
 par(mar = c(0,0,0,0))
-plot(huc4,col=get.col.bins(huc4$tn_slope), lty = 1, lwd=1.5,border=TRUE,mar=c(0,0,1,1),oma=c(0,0,0,0))
+plot(huc4,col=get.col.bins(huc4$tn_slope), lty = 1, lwd=1,border=TRUE,mar=c(0,0,1,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tn_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
 
 #map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
 #                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
 #                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
 #                                  "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=2,lty=3, add = TRUE)
-plot(huc4,col=get.col.bins(huc4$tp_slope), lty = 1, lwd=1.5,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
+plot(huc4,col=get.col.bins(huc4$tp_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tp_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
 
-plot(huc4,col=get.col.bins(huc4$tntp_slope), lty = 1, lwd=1.5,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
+plot(huc4,col=get.col.bins(huc4$tntp_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tntp_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
 
-plot(huc4,col=get.col.bins(huc4$chl_slope), lty = 1, lwd=1.5,border=TRUE,mar=c(1,1,1,1))
+plot(huc4,col=get.col.bins(huc4$chl_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1))
 plot(huc4[which(huc4$chl_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
 
+# add legend
 
+legend(x=-85, y=36, legend = NA, 
+       fill =  colors , x.intersp = .2, cex = 2.5, horiz = TRUE)
+
+points(x = seq(from = -85, to = -72, by = ((85-72)/9)), y= rep(49,10), pch = 15, cex = 3.1, col = colors)
+text(x = seq(from = -85, to = -72, by = ((85-72)/9)), y = rep(48,10), labels = c("-5","-4", "-3", "-2","-1","1","2","3","4","5"), cex = 1)
+text(x=-78.5, y = 50.2, labels = "% Change Per Year", cex = 1.2)
 dev.off()
 
+######################################################
+## create a map that plots lake random effects
+######################################################
 
-#add legend
+#function to extract lake BLUPS
+lake.map.data <- function(lake.RE)  {
+  dat <- lake.RE[[1]][lake.RE[[1]]$term == "sampleyear_cor",c("lagoslakeid", "coef_mean", "ymin", "ymax")]
 
-## set the location and the colorbar gradation
-xleft <- -81.5
-xright <- -80
-ybot <- 44
-yint <- (48-44) / 65
-ytop <- ybot + yint
-
-
-## create the bar by stacking a bunch of colored rectangles
-for(c in colorRampPalette(col_ramp_tp)(65)){
-  ybot = ybot + yint
-  ytop = ytop + yint
-  rect(xleft, ybot, xright, ytop, border = NA, col = c)
-  print(c(xleft, xright, ybot, ytop, c))
+  # add column that say whether the change value is different from zero
+  for (i in 1:nrow(dat)){
+    if (dat$ymin[i] > 0|dat$ymax[i]<0) {
+      dat$sig[i] = TRUE
+    } else {
+      dat$sig[i] = FALSE
+    }
+  }
+  dat = merge(dat, lake.info[,c("lagoslakeid", "nhd_lat", "nhd_long")], by = "lagoslakeid", all.x = TRUE)
+  return(dat)
 }
 
-## generate labels
-labels <- round(seq(min(z, na.rm = TRUE), max(z, na.rm = TRUE), length.out = 5),2)
+temp.tn = lake.map.data(change.db.tn)
+temp.tp = lake.map.data(change.db.tp)
+temp.tntp = lake.map.data(change.db.tntp)
+temp.chl = lake.map.data(change.db.chl)
 
-## add the labels to the plot
-text(c(xright + 0.0005),
-     seq(44, 48, length.out = 5),
-     labels = as.character(labels),
-     cex = 0.8,
-     pos = 4)
-text(-79.6, 48.9, "TN % Change", offset=0, cex=.9)
-rect(xleft, ytop - 65*yint, xright, ytop)
-rect(-82.5, 43.7, -76.6, 49.4)
+colors = c(rgb(5,48,97,max=255),
+  rgb(33,102,172,max=255),
+  rgb(67,147,195,max=255),
+  rgb(146,197,222,max=255),
+  rgb(209,229,240,max=255),
+  rgb(253,219,199,max=255),
+  rgb(244,165,130,max=255),
+  rgb(214,96,77,max=255),
+  rgb(178,24,43,max=255),
+  rgb(103,0,31,max=255))
 
-dev.off()
+colors.alpha = function(col, alpha) {
+  temp = apply(sapply(col, col2rgb)/255, 2, 
+        function(x) 
+          rgb(x[1], x[2], x[3], alpha=alpha))
+  return(as.character(temp))
+}
 
-## function to create colors around zero
-
-diverge.color <- function(start.color,end.color,min.value,max.value,mid.value=0,mid.color="ivory") 
-  
-{ 
-  # based on ideas from Maureen Kennedy, Nick Povak, and Alina Cansler 
-  
-  # creates a palette for the current session for a divergent-color 
-  # graphic with a non-symmetric range 
-  # "cuts" = the number of slices to be made in the range above and below "mid.value" 
-  
-  ramp1 <- colorRampPalette(c(start.color,mid.color)) 
-  ramp2 <- colorRampPalette(c(mid.color,end.color)) 
-  
-  # now specify the number of values on either side of "mid.value" 
-  
-  max.breaks <- length(which(z > 0))
-  min.breaks <- length(which(z < 0))+1
-  
-  num.breaks <- max.breaks + min.breaks
-  
-  low.ramp <- ramp1(min.breaks) 
-  high.ramp <- ramp2(max.breaks) 
-  
-  # now create a combined ramp from the higher values of "low.ramp" and 
-  # the lower values of "high.ramp", with the longer one using all values 
-  # high.ramp starts at 2 to avoid duplicating zero 
-  
-  myColors <- c(low.ramp,high.ramp[2:max.breaks]) 
-  
-  myColors 
-} 
-
-test = diverge.color(start.color = col_ramp_tn[1], "black", min(z, na.rm = TRUE), max(z, na.rm = TRUE), mid.value = 0, mid.color = "lightgray")
-test = test[as.numeric(cut(z, breaks = 41, na.rm = TRUE))]
-
-test2 = diverge.color(start.color = col_ramp_tn[1], "black", min(z, na.rm = TRUE), max(z, na.rm = TRUE), mid.value = 0, mid.color = "lightgray")
+col.test = colors.alpha(colors, 0.5)
 
 
-plot(huc4,col=test, border="gray50", lty = 1, lwd= 1)
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                 "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                 "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                 "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1)
+points(temp.tn$nhd_long, temp.tn$nhd_lat, col = get.col.bins(temp.tn$coef_mean, 200), pch = 16)
+points(temp.tn$nhd_long[which(temp.tn$sig==TRUE)], temp.tn$nhd_lat[which(temp.tn$sig==TRUE)], 
+       bg = get.col.bins(temp.tn$coef_mean[which(temp.tn$sig==TRUE)], 230), 
+       pch = 21, col = "black" ,lwd = 1)
 
-
-
+test=get.col.bins(temp.tn$coef_mean, .5)
