@@ -116,58 +116,6 @@ data.lake.specific = read.table("lagos_lakes_10541.txt",
 lake.info = data.lake.specific[,c("lagoslakeid", "nhd_lat", "nhd_long")]
 
 
-change.db.tp = merge(change.db.tp, lake.info, by = "lagoslakeid", all.x = TRUE)
-change.db.tn = merge(change.db.tn, lake.info, by = "lagoslakeid", all.x = TRUE)
-change.db.tntp = merge(change.db.tntp, lake.info, by = "lagoslakeid", all.x = TRUE)
-change.db.chl = merge(change.db.chl, lake.info, by = "lagoslakeid", all.x = TRUE)
-
-for (i in c(1:n.tp)) {
-  if (change.db.tp$tp.slopes[i]-(1.645*change.db.tp$tp.slopes.sd[i]) > 0) {
-    change.db.tp$tp.change[i] = "positive"
-  } else {
-    if (change.db.tp$tp.slopes[i]+(1.645*change.db.tp$tp.slopes.sd[i]) < 0) {
-      change.db.tp$tp.change[i] = "negative"
-    } else {
-      change.db.tp$tp.change[i] = "no change"
-    }
-  }
-}
-
-for (i in c(1:n.tn)) {
-  if (change.db.tn$tn.slopes[i]-(1.645*change.db.tn$tn.slopes.sd[i]) > 0) {
-    change.db.tn$tn.change[i] = "positive"
-  } else {
-    if (change.db.tn$tn.slopes[i]+(1.645*change.db.tn$tn.slopes.sd[i]) < 0) {
-      change.db.tn$tn.change[i] = "negative"
-    } else {
-      change.db.tn$tn.change[i] = "no change"
-    }
-  }
-}
-
-for (i in c(1:n.tntp)) {
-  if (change.db.tntp$tntp.slopes[i]-(1.645*change.db.tntp$tntp.slopes.sd[i]) > 0) {
-    change.db.tntp$tntp.change[i] = "positive"
-  } else {
-    if (change.db.tntp$tntp.slopes[i]+(1.645*change.db.tntp$tntp.slopes.sd[i]) < 0) {
-      change.db.tntp$tntp.change[i] = "negative"
-    } else {
-      change.db.tntp$tntp.change[i] = "no change"
-    }
-  }
-}
-
-for (i in c(1:n.chl)) {
-  if (change.db.chl$chl.slopes[i]-(1.645*change.db.chl$chl.slopes.sd[i]) > 0) {
-    change.db.chl$chl.change[i] = "positive"
-  } else {
-    if (change.db.chl$chl.slopes[i]+(1.645*change.db.chl$chl.slopes.sd[i]) < 0) {
-      change.db.chl$chl.change[i] = "negative"
-    } else {
-      change.db.chl$chl.change[i] = "no change"
-    }
-  }
-}
 
 ## calculate probability of change > or < 0 for each lake
 ## create histograms of probability of change
@@ -824,13 +772,21 @@ names(huc4)[c(29,30)] = c("tntp_slope", "tntp_sig")
 huc4 = merge(huc4, temp.chl[,c(1,2,5)], by = "ZoneID", all.x = TRUE)
 names(huc4)[c(31,32)] = c("chl_slope", "chl_sig")
 
-huc4@data$id = rownames(huc4@data)
-huc4=fortify(huc4, region="i")
+colors =  c(rgb(5,48,97,max=255),
+            rgb(33,102,172,max=255),
+            rgb(67,147,195,max=255),
+            rgb(146,197,222,max=255),
+            rgb(209,229,240,max=255),
+            rgb(253,219,199,max=255),
+            rgb(244,165,130,max=255),
+            rgb(214,96,77,max=255),
+            rgb(178,24,43,max=255),
+            rgb(103,0,31,max=255))
 
-get.col.bins <- function(slopes, alpha=1) {
+get.col.bins <- function(slopes, alpha=255) {
 z=100*slopes
 
-ii <- cut(z, breaks = c(-5,-4,-3,-2,-1,0,1,2,3,4,5), 
+ii <- cut(z, breaks = c(-15,-4,-3,-2,-1,0,1,2,3,4,15), 
           include.lowest = TRUE)
 
 levels(ii) <- c(rgb(5,48,97,max=255, alpha=alpha),
@@ -848,12 +804,20 @@ ii[is.na(ii)==TRUE] <- rgb(255,255,255,max=255)
 return(ii)
 }
 
-
-pdf("region_blups.pdf")
-par(mfrow=c(4,1), cex = 1)
+pdf("blup_legend.pdf")
 par(mar = c(0,0,0,0))
-plot(huc4,col=get.col.bins(huc4$tn_slope), lty = 1, lwd=1,border=TRUE,mar=c(0,0,1,1),oma=c(0,0,0,0))
+plot.new()
+points(x = seq(from = 0.1, to = 0.9, by = (.8/9)), y= rep(.5,10), pch = 15, cex = 7, col = colors)
+text(x = seq(from = .1, to = .9, by = (.8/9)), y = rep(.43,10), labels = c("-5","-4", "-3", "-2","-1","1","2","3","4","5"), cex = 2)
+text(x=.5, y = .59, labels = "% Change Per Year", cex = 2.2)
+dev.off()
+
+pdf("all_blups.pdf")
+par(mfcol=c(4,2), cex = 1)
+par(mar = c(0,0,0,0))
+plot(huc4,col=get.col.bins(huc4$tn_slope), lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tn_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
+
 
 #map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
 #                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
@@ -868,15 +832,6 @@ plot(huc4[which(huc4$tntp_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
 plot(huc4,col=get.col.bins(huc4$chl_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1))
 plot(huc4[which(huc4$chl_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
 
-# add legend
-
-legend(x=-85, y=36, legend = NA, 
-       fill =  colors , x.intersp = .2, cex = 2.5, horiz = TRUE)
-
-points(x = seq(from = -85, to = -72, by = ((85-72)/9)), y= rep(49,10), pch = 15, cex = 3.1, col = colors)
-text(x = seq(from = -85, to = -72, by = ((85-72)/9)), y = rep(48,10), labels = c("-5","-4", "-3", "-2","-1","1","2","3","4","5"), cex = 1)
-text(x=-78.5, y = 50.2, labels = "% Change Per Year", cex = 1.2)
-dev.off()
 
 ######################################################
 ## create a map that plots lake random effects
@@ -903,34 +858,42 @@ temp.tp = lake.map.data(change.db.tp)
 temp.tntp = lake.map.data(change.db.tntp)
 temp.chl = lake.map.data(change.db.chl)
 
-colors = c(rgb(5,48,97,max=255),
-  rgb(33,102,172,max=255),
-  rgb(67,147,195,max=255),
-  rgb(146,197,222,max=255),
-  rgb(209,229,240,max=255),
-  rgb(253,219,199,max=255),
-  rgb(244,165,130,max=255),
-  rgb(214,96,77,max=255),
-  rgb(178,24,43,max=255),
-  rgb(103,0,31,max=255))
-
-colors.alpha = function(col, alpha) {
-  temp = apply(sapply(col, col2rgb)/255, 2, 
-        function(x) 
-          rgb(x[1], x[2], x[3], alpha=alpha))
-  return(as.character(temp))
-}
-
-col.test = colors.alpha(colors, 0.5)
-
-
+#tn plot
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
-                                 "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1)
-points(temp.tn$nhd_long, temp.tn$nhd_lat, col = get.col.bins(temp.tn$coef_mean, 200), pch = 16)
+                                 "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,0),oma=c(0,0,0,0))
+points(temp.tn$nhd_long[which(temp.tn$sig==FALSE)], temp.tn$nhd_lat[which(temp.tn$sig==FALSE)], col = get.col.bins(temp.tn$coef_mean[which(temp.tn$sig==FALSE)], 200), pch = 16)
 points(temp.tn$nhd_long[which(temp.tn$sig==TRUE)], temp.tn$nhd_lat[which(temp.tn$sig==TRUE)], 
-       bg = get.col.bins(temp.tn$coef_mean[which(temp.tn$sig==TRUE)], 230), 
+       bg = get.col.bins(temp.tn$coef_mean[which(temp.tn$sig==TRUE)], 200), 
+       pch = 21, col = "black" ,lwd = 1)
+#tp plot
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,1),oma=c(0,0,0,0))
+points(temp.tp$nhd_long[which(temp.tp$sig==FALSE)], temp.tp$nhd_lat[which(temp.tp$sig==FALSE)], col = get.col.bins(temp.tp$coef_mean[which(temp.tp$sig==FALSE)], 200), pch = 16)
+points(temp.tp$nhd_long[which(temp.tp$sig==TRUE)], temp.tp$nhd_lat[which(temp.tp$sig==TRUE)], 
+       bg = get.col.bins(temp.tp$coef_mean[which(temp.tp$sig==TRUE)], 200), 
+       pch = 21, col = "black" ,lwd = 1)
+#tntp plot
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,1),oma=c(0,0,0,0))
+points(temp.tntp$nhd_long[which(temp.tntp$sig==FALSE)], temp.tntp$nhd_lat[which(temp.tntp$sig==FALSE)], col = get.col.bins(temp.tntp$coef_mean[which(temp.tntp$sig==FALSE)], 200), pch = 16)
+points(temp.tntp$nhd_long[which(temp.tntp$sig==TRUE)], temp.tntp$nhd_lat[which(temp.tntp$sig==TRUE)], 
+       bg = get.col.bins(temp.tntp$coef_mean[which(temp.tntp$sig==TRUE)], 200), 
        pch = 21, col = "black" ,lwd = 1)
 
-test=get.col.bins(temp.tn$coef_mean, .5)
+#chl plot
+map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,1),oma=c(0,0,0,0))
+points(temp.chl$nhd_long[which(temp.chl$sig==FALSE)], temp.chl$nhd_lat[which(temp.chl$sig==FALSE)], col = get.col.bins(temp.chl$coef_mean[which(temp.chl$sig==FALSE)], 200), pch = 16)
+points(temp.chl$nhd_long[which(temp.chl$sig==TRUE)], temp.chl$nhd_lat[which(temp.chl$sig==TRUE)], 
+       bg = get.col.bins(temp.chl$coef_mean[which(temp.chl$sig==TRUE)], 200), 
+       pch = 21, col = "black" ,lwd = 1)
+
+dev.off()
