@@ -17,53 +17,7 @@ n.tn = 833
 n.tp = 2096
 n.tntp = 742
 n.chl = 2143
-# create data frame of % change values
 
-tp.ints = as.numeric(output_TP_01[c(1:n.tp),1])
-tp.ints.sd = as.numeric(output_TP_01[c(1:n.tp),2])
-tp.slopes = as.numeric(output_TP_01[c((n.tp+1):(2*n.tp)),1])
-tp.slopes.sd = as.numeric(output_TP_01[c((n.tp+1):(2*n.tp)),2])
-tp.slope.pop = as.numeric(output_TP_01[rownames(output_TP_01)=="mu.beta", 1])
-tp.slope.sd = as.numeric(output_TP_01[rownames(output_TP_01)=="mu.beta", 2])
-
-
-tn.ints = as.numeric(output_TN_01[c(1:n.tn),1])
-tn.ints.sd = as.numeric(output_TN_01[c(1:n.tn),2])
-tn.slopes = as.numeric(output_TN_01[c((n.tn+1):(n.tn*2)),1])
-tn.slopes.sd = as.numeric(output_TN_01[c((n.tn+1):(n.tn*2)),2])
-tn.slope.pop = as.numeric(output_TN_01[rownames(output_TN_01)=="mu.beta", 1])
-tn.slope.sd = as.numeric(output_TN_01[rownames(output_TN_01)=="mu.beta", 2])
-
-tntp.ints = as.numeric(output_TNTP[c(1:n.tntp),1])
-tntp.ints.sd = as.numeric(output_TNTP[c(1:n.tntp),2])
-tntp.slopes = as.numeric(output_TNTP[c((n.tntp+1):(n.tntp*2)),1])
-tntp.slopes.sd = as.numeric(output_TNTP[c((n.tntp+1):(n.tntp*2)),2])
-tntp.slope.pop = as.numeric(output_TNTP[rownames(output_TNTP)=="mu.beta", 1])
-tntp.slope.sd = as.numeric(output_TNTP[rownames(output_TNTP)=="mu.beta", 2])
-
-chl.ints = as.numeric(output_chl[c(1:n.chl),1])
-chl.ints.sd = as.numeric(output_chl[c(1:n.chl),2])
-chl.slopes = as.numeric(output_chl[c((n.chl+1):(n.chl*2)),1])
-chl.slopes.sd = as.numeric(output_chl[c((n.chl+1):(n.chl*2)),2])
-chl.slope.pop = as.numeric(output_chl[rownames(output_chl)=="mu.beta", 1])
-chl.slope.sd = as.numeric(output_chl[rownames(output_chl)=="mu.beta", 2])
-
-change.db.tp = data.frame(tp.slopes = tp.slopes, 
-                       tp.ints = tp.ints,
-                       tp.slopes.sd = tp.slopes.sd, 
-                       tp.ints.sd = tp.ints.sd)
-change.db.tn = data.frame(tn.slopes = tn.slopes, 
-                          tn.ints = tn.ints,
-                          tn.slopes.sd = tn.slopes.sd, 
-                          tn.ints.sd = tn.ints.sd)
-change.db.tntp = data.frame(tntp.slopes = tntp.slopes, 
-                          tntp.ints = tntp.ints,
-                          tntp.slopes.sd = tntp.slopes.sd, 
-                          tntp.ints.sd = tntp.ints.sd)
-change.db.chl = data.frame(chl.slopes = chl.slopes, 
-                            chl.ints = chl.ints,
-                            chl.slopes.sd = chl.slopes.sd, 
-                            chl.ints.sd = chl.ints.sd)
 
 ## create dataframe that matches lake number to lagoslakeid
 
@@ -134,11 +88,26 @@ change.db.tn = merge(change.db.tn, tn.slopes.07[,c(2,3)], by = "lagoslakeid", al
 
 ## create dataframe with all slopes (TP, TN, CHL, TNTP)
 
-change.db.all = merge(change.db.chl, change.db.tp, by = "lagoslakeid", all = TRUE)
-change.db.all = merge(change.db.all, change.db.tn, by = "lagoslakeid", all = TRUE)
-change.db.all = change.db.all[,c(1,3,9,11,17,22,28)]
+temp.tn = change.db.tn[[1]][,c(2,3,11,13,14)]
+names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
 
+temp.tp = change.db.tp[[1]][,c(2,3,11,13,14)]
+names(temp.tp)[3:5] = c("tp_coef_mean", "tp_ymin", "tp_ymax")
+
+temp.tntp = change.db.tntp[[1]][,c(2,3,11,13,14)]
+names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
+
+temp.chl = change.db.chl[[1]][,c(2,3,11,13,14)]
+names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
+
+change.db.all = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(2:5)], temp.tp[temp.tp$term=="sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
+change.db.all = merge(change.db.all, temp.chl[temp.chl$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
+change.db.all = merge(change.db.all, temp.tntp[temp.tntp$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
+
+######################################
 ## create histograms of probabilities
+######################################
+
 pdf("TN_TP_change_prob.pdf")
 par(mar = c(5,5,4,2))
 hist(change.db.tn$tn.slopes.p, breaks = 20, 
@@ -160,10 +129,9 @@ legend(0.5, .7, c("TN", "TP"), fill= c(col.tn, col.tp))
 
 dev.off()
 
- 
-
-
+###############################################
 ## create histograms of estimates of % change
+################################################
 pdf("TN_TP_change_hist.pdf")
 
 par(mar = c(5,5,4,2))
@@ -265,52 +233,63 @@ points(temp$nhd_long[temp$tn.change=="negative" & temp$tp.change=="negative"], t
        cex=1.2, col = "black", pch=24, bg = col.both)
 
 dev.off()
+
 #####################################################
 ## create a figure that plots %TN change vs %TP change
 #####################################################
-temp.tn = 100*change.db.tn$tn.slopes[change.db.tn$lagoslakeid %in% change.db.tp$lagoslakeid]
-temp.tp = 100*change.db.tp$tp.slopes[change.db.tp$lagoslakeid %in% change.db.tn$lagoslakeid]
-temp.tn.change = change.db.tn$tn.change[change.db.tn$lagoslakeid %in% change.db.tp$lagoslakeid]
-temp.tp.change = change.db.tp$tp.change[change.db.tp$lagoslakeid %in% change.db.tn$lagoslakeid]
+
+temp = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$tp_coef_mean),]
+temp.tn = 100*temp$tn_coef_mean
+temp.tp = 100*temp$tp_coef_mean
 
 pdf("TN_TP_change.pdf")
 par(mar=c(5,5,1,1))
-plot(temp.tn[temp.tn.change == "positive" & temp.tp.change == "no change"]~temp.tp[temp.tn.change == "positive" & temp.tp.change == "no change"], 
+#tn positive, tp no change
+plot(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymin > 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0], 
      xlab = "% Change in TP per year", 
      ylab = "% Change in TN per year", 
      cex = 1.5, cex.lab = 2, cex.axis = 1.5,  col = "black", pch=24, bg = col.tn,
-     xlim = c(-8,6), ylim = c(-6, 3))
+     xlim = c(-6,6), ylim = c(-6, 3))
 # Tn no change, TP no change
-points(temp.tn[temp.tn.change == "no change" & temp.tp.change == "no change"]~temp.tp[temp.tn.change == "no change" & temp.tp.change == "no change"],
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_ymax > 0],
        pch=1, cex = 1.5)
 #TN up, TP up
-points(temp.tn[temp.tn.change == "positive" & temp.tp.change == "positive"]~temp.tp[temp.tn.change == "positive" & temp.tp.change == "positive"],
+points(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymin > 0 & temp$tp_ymin > 0],
        col = "black", bg = col.both, pch=19, cex = 1.5)
+
 #TN down, TP down
-points(temp.tn[temp.tn.change == "negative" & temp.tp.change == "negative"]~temp.tp[temp.tn.change == "negative" & temp.tp.change == "negative"],
+points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymax < 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymax < 0],
        col = "black", bg = col.both, pch=19, cex = 1.5)
+
 #TN down, TP no change
-points(temp.tn[temp.tn.change == "negative" & temp.tp.change == "no change"]~temp.tp[temp.tn.change == "negative" & temp.tp.change == "no change"],
+points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0],
        col = "black", bg = col.tn, pch=25, cex = 1.5)
+
 #TN no change, TP down
-points(temp.tn[temp.tn.change == "no change" & temp.tp.change == "negative"]~temp.tp[temp.tn.change == "no change" & temp.tp.change == "negative"],
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymax<0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymax<0],
        col = "black", bg = col.tp, pch=25, cex = 1.5)
+
 #TN no change, TP up
-points(temp.tn[temp.tn.change == "no change" & temp.tp.change == "positive"]~temp.tp[temp.tn.change == "no change" & temp.tp.change == "positive"],
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin>0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin>0],
        col = "black", bg = col.tp, pch=24, cex = 1.5)
+
+#TN down, TP up
+points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymin > 0],
+       col = "black", bg = col.both,  pch=19, cex = 1.5)
+
+
 legend("bottomright",
        c("No Change", "Both Changing", "TN Increasing",  "TP Increasing","TN Decreasing", "TP Decreasing"), 
        pch = c(21,21,24,24,25,25), 
        pt.bg = c("white", col.both, col.tn, col.tp, col.tn, col.tp), 
        pt.cex = 1.5)
 
-
-
 abline(0,1)
 abline(h=0, col = col.tn, lwd = 3)
 abline(v=0, col = col.tp, lwd = 3)
 
 dev.off()
+
 
 ##################################
 ## create fig of lake-specific slopes and intercepts and predictors
