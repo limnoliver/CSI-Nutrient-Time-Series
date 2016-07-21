@@ -19,27 +19,6 @@ n.tntp = 742
 n.chl = 2143
 
 
-## create dataframe that matches lake number to lagoslakeid
-
-change.db.tp$lake_num = c(1:n.tp)
-lake.conv = dat[,c(1,8)]
-lake.conv = unique(lake.conv)
-change.db.tp = merge(change.db.tp, lake.conv, by = "lake_num", all.x = TRUE)
-
-change.db.tn$lake_num = c(1:n.tn)
-lake.conv = dat[,c(1,8)]
-lake.conv = unique(lake.conv)
-change.db.tn = merge(change.db.tn, lake.conv, by = "lake_num", all.x = TRUE)
-
-change.db.tntp$lake_num = c(1:n.tntp)
-lake.conv = dat[,c(1,10)]
-lake.conv = unique(lake.conv)
-change.db.tntp = merge(change.db.tntp, lake.conv, by = "lake_num", all.x = TRUE)
-
-change.db.chl$lake_num = c(1:n.chl)
-lake.conv = dat[,c(1,7)]
-lake.conv = unique(lake.conv)
-change.db.chl = merge(change.db.chl, lake.conv, by = "lake_num", all.x = TRUE)
 
 # create dataframe of change values for post 2006 data
 n.tp.07 = 1671
