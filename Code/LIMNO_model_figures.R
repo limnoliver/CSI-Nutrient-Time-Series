@@ -386,6 +386,8 @@ library(plyr)
 counts = count(data.tp, vars = "lagoslakeid")
 counts = merge(counts, data.lake.specific[,c(1,3,4)], "lagoslakeid", all.x = TRUE)
 
+counts = count(data.tn, vars = "lagoslakeid")
+median(counts$freq)
 
 pdf("TN_Num_yrs_location.pdf")
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
@@ -460,12 +462,18 @@ dev.off()
 ############################################################
 
 names(data.tn)
-lake.info = data.lake.specific[,c(1,5,12,26,32,38)]
-lakes.tn = data.frame(lagoslakeid = unique(data.tn[,1]))
-lakes.tp = data.frame(lagoslakeid = unique(data.tp[,1]))
+lake.info.short = lake.info[,c(1,5,12,26,32,38)]
 
-tn = merge(lakes.tn, lake.info, by = "lagoslakeid", all.x = TRUE)
-tp = merge(lakes.tp, lake.info, by = "lagoslakeid", all.x = TRUE)
+lake.list <- function(dat){
+  lakes = data.frame(lagoslakeid = unique(dat[,"lagoslakeid"]))
+  lakes = merge(lakes, lake.info.short, by = "lagoslakeid", all.x = TRUE)
+  return(lakes)
+}
+lakes.tn = lake.list(data.tn)
+lakes.tp = lake.list(data.tp)
+lakes.tntp = lake.list(data.tntp)
+lakes.chl = lake.list(data.chl)
+
 
 ## calculate population and sample statistics
 # area
@@ -855,3 +863,44 @@ points(temp.chl$nhd_long[which(temp.chl$sig==TRUE)], temp.chl$nhd_lat[which(temp
        pch = 21, col = "black" ,lwd = 1)
 
 dev.off()
+
+# make a contour plot of x = tp, y = tn and z = chl. Basically, show response of 
+# chlorophyll to changes in tp and tn
+
+dat = change.db.all[complete.cases(change.db.all), ]
+dat = data.frame(x = dat$tp_coef_mean*100, y = dat$tn_coef_mean*100, z = dat$chl_coef_mean*100)
+
+require(akima)
+
+dat.m = interp(x = dat$x, y = dat$y, z = dat$z, linear = TRUE, 
+               extrap = FALSE, duplicate = "mean")
+
+# Create contour plot
+
+png("Nutrients_Chl_contour.png", height = 1200, width = 1200, pointsize = 20)
+par(mar=c(5,5,3,1),cex = 1.2, cex.lab = 1.5, cex.axis = 1.2)
+filled.contour(x = dat.m$x,
+               y = dat.m$y, 
+               z = dat.m$z,
+               levels = c(-10,-4,-3,-2,-1,0,1,2,3,4,10),
+               col = rev(brewer.pal(10, name = "RdBu")),
+               #color.palette = colorRampPalette(c(rgb(5,48,97,max=255), rgb(255,255,255,max=255),rgb(103,0,31,max=255))), 
+               xlab = "% TP Change Per Year", 
+               ylab = "% TN Change Per Year", 
+               key.title = title(main = paste("% Chl Change per Year"), cex.main = 1))
+lines(x = c(-6.45, 3.2), y = c(0,0),  lwd = 4, lty = 2)
+lines(x = c(-1.24,-1.24), y = c(-4.09,2.485),  lwd = 4, lty = 2)
+text(labels = "n = 50", x = -6, y = 2.2, cex = 2, adj = 0)
+text(labels = "n = 91", x = -.9, y = 2.2, cex = 2, adj = 0)
+text(labels = "n = 195", x = 1.6, y = -3.8, cex = 2, adj = 0)
+text(labels = "n = 307", x = -6, y = -3.8, cex = 2, adj = 0)
+
+dev.off()
+
+########################
+# filling in summary tables
+##########################
+
+## extract model coefficients
+change.db.tntp[[4]][2,2] - (qnorm(.975)*change.db.tntp[[4]][2,4])
+change.db.tntp[[4]][2,2] + (qnorm(.975)*change.db.tntp[[4]][2,4])
