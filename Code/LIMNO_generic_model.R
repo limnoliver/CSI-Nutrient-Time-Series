@@ -7,6 +7,7 @@ library(effects)
 require(maps)
 library(merTools)
 library(ggplot2)
+library(RLRsim)
 
 # load data that has already been filtered to meet the timeseries requirements
 setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")

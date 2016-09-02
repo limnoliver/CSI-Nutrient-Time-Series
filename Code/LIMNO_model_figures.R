@@ -65,7 +65,7 @@ change.db.tp = merge(change.db.tp, tp.slopes.07[,c(2,3)], by = "lagoslakeid", al
 change.db.tn = merge(change.db.tn, tn.slopes.07[,c(2,3)], by = "lagoslakeid", all.x = TRUE)
 
 
-## create dataframe with all slopes (TP, TN, CHL, TNTP)
+## create dataframe with all lake slopes (TP, TN, CHL, TNTP)
 
 temp.tn = change.db.tn[[1]][,c(2,3,11,13,14)]
 names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
@@ -82,6 +82,71 @@ names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
 change.db.all = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(2:5)], temp.tp[temp.tp$term=="sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
 change.db.all = merge(change.db.all, temp.chl[temp.chl$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
 change.db.all = merge(change.db.all, temp.tntp[temp.tntp$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
+
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
+
+write.table(change.db.all, "lmer_change_db.txt")
+
+## create dataframe with all region slopes (TP, TN, CHL, TNTP)
+
+temp.tn = change.db.tn[[2]][,c(1,2,6,8,9)]
+names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
+
+temp.tp = change.db.tp[[2]][,c(1,2,6,8,9)]
+names(temp.tp)[3:5] = c("tp_coef_mean", "tp_ymin", "tp_ymax")
+
+temp.chl = change.db.chl[[2]][,c(1,2,6,8,9)]
+names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
+
+temp.tntp = change.db.tntp[[2]][,c(1,2,6,8,9)]
+names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
+
+change.db.region = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(1,3,4,5)], temp.tp[temp.tp$term=="sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
+change.db.region = merge(change.db.region, temp.chl[temp.chl$term == "sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
+
+change.db.region = merge(change.db.region, temp.tntp[temp.tntp$term == "sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
+
+
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
+
+write.table(change.db.region, "lmer_change_db_region.txt")
+
+# create change.db but this time with BLUPs (not combined coefficients)
+# so that lake and region BLUPs can be used in the random forest analysis
+
+temp.tn = change.db.tn[[1]][,c(2,3,5)]
+names(temp.tn)[3] = "tn_blup"
+
+temp.tp = change.db.tp[[1]][,c(2,3,5)]
+names(temp.tp)[3] = "tp_blup"
+
+temp.tntp = change.db.tntp[[1]][,c(2,3,5)]
+names(temp.tntp)[3] = "tntp_blup"
+
+temp.chl = change.db.chl[[1]][,c(2,3,5)]
+names(temp.chl)[3] = "chl_blup"
+
+lake.blups = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(2:3)], temp.tp[temp.tp$term=="sampleyear_cor",c(2:3)], by = "lagoslakeid", all = TRUE)
+lake.blups = merge(lake.blups, temp.chl[temp.chl$term == "sampleyear_cor",c(2:3)], by = "lagoslakeid", all = TRUE)
+lake.blups = merge(lake.blups, temp.tntp[temp.tntp$term == "sampleyear_cor",c(2:3)], by = "lagoslakeid", all = TRUE)
+
+# create the same dataframe for regions
+
+temp.tn = change.db.tn[[2]][,c(1:3)]
+names(temp.tn)[3] = "tn_blup"
+
+temp.tp = change.db.tp[[2]][,c(1:3)]
+names(temp.tp)[3] = "tp_blup"
+
+temp.tntp = change.db.tntp[[2]][,c(1:3)]
+names(temp.tntp)[3] = "tntp_blup"
+
+temp.chl = change.db.chl[[2]][,c(1:3)]
+names(temp.chl)[3] = "chl_blup"
+
+region.blups = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(1,3)], temp.tp[temp.tp$term=="sampleyear_cor",c(1,3)], by = "hu4_zoneid", all = TRUE)
+region.blups = merge(region.blups, temp.chl[temp.chl$term == "sampleyear_cor",c(1,3)], by = "hu4_zoneid", all = TRUE)
+region.blups = merge(region.blups, temp.tntp[temp.tntp$term == "sampleyear_cor",c(1,3)], by = "hu4_zoneid", all = TRUE)
 
 ######################################
 ## create histograms of probabilities
@@ -904,3 +969,270 @@ dev.off()
 ## extract model coefficients
 change.db.tntp[[4]][2,2] - (qnorm(.975)*change.db.tntp[[4]][2,4])
 change.db.tntp[[4]][2,2] + (qnorm(.975)*change.db.tntp[[4]][2,4])
+
+##########################
+# create cumulative distributions of start and end concentrations
+##########################
+
+new.tn = unique(data.tn[,c("lagoslakeid", "hu4_zoneid")])
+new.tn = rbind(new.tn, new.tn)
+new.tn$sampleyear_cor[1:833] = 0
+new.tn$sampleyear_cor[834:1666] = 21
+new.tn$sampleyear_cor = as.integer(new.tn$sampleyear_cor)
+
+
+new.predict = predict(tn.3fr23, newdata = new.tn)
+new.tn = unique(data.tn[,c("lagoslakeid", "hu4_zoneid")])
+new.tn$pred_1990 = new.predict[c(1:833)]
+new.tn$pred_2011 = new.predict[c(834:1666)]
+
+
+# simulate starting and ending concentrations in 1990 and 2011, respectively
+mySumm <- function(.) {
+  predict(., newdata = new.tn, re.form = NULL)
+}
+
+
+
+sumBoot <- function(merBoot) {
+  return(
+    data.frame(fit = apply(merBoot$t, 2, function(x) mean(x, na.rm=TRUE)),
+               lwr = apply(merBoot$t, 2, function(x) mean(x,na.rm=TRUE) - (qnorm(.95)*sd(x))),
+               upr = apply(merBoot$t, 2, function(x) mean(x,na.rm=TRUE) + (qnorm(.95)*sd(x)))
+  )
+  )
+}
+
+PI.boot1.time <- system.time(
+  boot1 <- lme4::bootMer(tn.3fr23, mySumm, nsim=100, use.u=FALSE, type="parametric")
+)
+
+PI.boot1 <- sumBoot(boot1)
+
+mySumm <- function(.) { s <- sigma(.)
+c(beta =getME(., "beta"), sigma = s, sig01 = unname(s * getME(., "theta"))) 
+}
+
+system.time(boo01 <- bootMer(tn.3fr23, mySumm, nsim = 100))
+
+tn.compare = data.frame(fit.2011 = PI.boot1$fit[1:833], lwr.2011 = PI.boot1$lwr[1:833], upr.2011 = PI.boot1$upr[1:833],
+                        fit.1990 = PI.boot1$fit[834:1666], lwr.1990 = PI.boot1$lwr[834:1666], upr.1990 = PI.boot1$upr[834:1666])
+tn.2011 = PI.boot1
+
+tn.2011$lagoslakeid = new.tn$lagoslakeid
+tn.2011$hu4_zoneid = new.tn$hu4_zoneid
+test = change.db.tn[[1]][change.db.tn[[1]]$term == "(Intercept)", ]
+test = test[, c(3,11,13,14)]
+tn.2011 = merge(tn.2011, test, by = "lagoslakeid")
+tn.2011$diff = tn.2011$fit - tn.2011$coef_mean 
+
+test1 =  change.db.tn[[1]][change.db.tn[[1]]$term == "(Intercept)", ]
+test1 = test1[,c("lagoslakeid", "coef_mean")]
+test2 =  change.db.tn[[1]][change.db.tn[[1]]$term == "sampleyear_cor", ]
+test2 = test2[,c("lagoslakeid", "coef_mean")]
+
+test3 = merge(test1, test2, by = "lagoslakeid")
+# show cumulative distributions of concentration in those time points
+
+test = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4_zoneid), data = data.tn, REML=TRUE)
+
+PI.time <- system.time(
+  PI <- predictInterval(merMod = test, newdata = data.tn, 
+                        level = 0.90, n.sims = 1000,
+                        stat = "median", type="linear.prediction",
+                        include.resid.var = TRUE)
+)
+
+
+plot(ecdf(tn.compare$fit.1990), 
+     ylab = "Cumulative Proportion", 
+     xlab = "TN (umol/L)", 
+     col = "blue", 
+     cex = .5, 
+     cex.axis = 1.3, 
+     cex.main = 1.7)
+
+plot(ecdf(tn.compare$fit.2011), add = TRUE, cex = 0.5, col = "deeppink")
+
+## visualize raw data (nutrient ~ year) by region and by lake
+pdf("tn_lakebyregion.pdf")
+temp = data.tn[with(data.tn, order(lagoslakeid, sampleyear_cor)), ]
+xyplot(log(tn_umol)~sampleyear_cor | factor(hu4_zoneid), data=temp, pch=19,
+       xlab = "Year since 1990", ylab = "log(TN umol)", layout=c(10,5),type="l", groups = lagoslakeid)
+dev.off()
+
+pdf("tp_lakebyregion.pdf")
+temp = data.tp[with(data.tp, order(lagoslakeid, sampleyear_cor)), ]
+
+xyplot(log(tp_umol)~sampleyear_cor | factor(hu4_zoneid), data=temp, pch=19,
+       xlab = "Year since 1990", ylab = "log(TP umol)", layout=c(10,6),type="l", groups = lagoslakeid)
+dev.off()
+
+pdf("tntp_bylakeregion.pdf")
+temp = data.tntp[with(data.tntp, order(lagoslakeid, sampleyear_cor)), ]
+
+xyplot(log(tn_tp_umol)~sampleyear_cor | factor(hu4_zoneid), data=temp, pch=19,
+       xlab = "Year since 1990", ylab = "log(TN:TP molar)", layout=c(9,5),type="l", groups = lagoslakeid)
+dev.off()
+
+pdf("chl_lakebyregion.pdf")
+temp = data.chl[with(data.chl, order(lagoslakeid, sampleyear_cor)), ]
+temp = temp[temp$hu4_zoneid != "OUT_OF_HU4",]
+
+xyplot(log(chl)~sampleyear_cor | factor(hu4_zoneid), data=temp, pch=19,
+       xlab = "Year since 1990", ylab = "log(Chl umol)", layout=c(9,7),type="l", groups = lagoslakeid)
+dev.off()
+
+# create plot of nutrients vs model parameters (n obs/lake, median year, etc)
+
+#########################
+## random forest results
+#########################
+
+# create violin plots of important predictors identified by the rf
+
+library(ggplot2)
+quant.low = function(x){
+  quantile(x,.25)
+}
+quant.high = function(x){
+  quantile(x,.75)
+}
+pdf("chl_top_var.pdf")
+par(mfrow=c(1,4))
+for (i in 1:length(top.vars)){
+  #dat.keep = complete.cases(lake.predictors[,c(paste(top.vars$Response_Variable[i],"_change",sep=""),top.vars$Predictor_Variable[i]])
+  xvar = paste(top.vars$Response_Variable[i],"_change",sep="")
+  yvar = as.character(top.vars$Predictor_Variable[i])
+  dat.comp = lake.predictors[,c(xvar,yvar)]
+  dat.comp = dat.comp[complete.cases(dat.comp),]
+  ggplot(data=dat.comp, aes(x=get(xvar), y=get(yvar), fill=get(xvar))) + 
+    geom_violin()+
+    theme_classic()+
+    stat_summary(fun.ymin = "quant.low", 
+                 fun.y = "median",
+                 fun.ymax = "quant.high",
+                 geom="pointrange", shape = 3) +
+    scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
+    labs(x=paste(top.vars$Response_fullname[i]), 
+         y=paste(top.vars$Predictor_fullname[i])) +
+    theme(legend.position="none")
+  
+}
+
+ggplot(dat.keep, aes(x=tp_change, y=iws_crop, fill=tp_change)) + 
+  geom_violin()+
+  theme_classic()+
+  stat_summary(fun.ymin = "tenth", 
+               fun.y = "median",
+               fun.ymax = "ninetieth",
+               geom="pointrange", shape = 3) +
+  scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
+  labs(x="TP Change", y="% Crops in Watershed")
+
+ggplot(dat.keep, aes(x=tn_change, y=hu4_dep_totaln_1990_mean, fill=tn_change)) + 
+  geom_violin()+
+  theme_classic()+
+  stat_summary(fun.ymin = "tenth", 
+               fun.y = "median",
+               fun.ymax = "ninetieth",
+               geom="pointrange", shape = 95) +
+  scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
+  labs(x="TN Change", y="HUC4 Total N Deposition (1990)")
+
+ggplot(dat.keep, aes(x=chl_change, y=hu4_prism_tmax_30yr_normal_800mm2_annual_mean, fill=chl_change)) + 
+  geom_violin()+
+  theme_classic()+
+  stat_summary(fun.ymin = "tenth", 
+               fun.y = "median",
+               fun.ymax = "ninetieth",
+               geom="pointrange", shape = 95) +
+  scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
+  labs(x="Chl Change", y="HUC4 30-yr Normal Max Temp")
+
+partialPlot(chl.rf.cat, pred.data = dat.keep, "hu4_prism_tmax_30yr_normal_800mm2_annual_mean")
+
+
+## create a 4x3 panel that shows all responses ~ mean value/med year/nobs
+## first by category/boxplot
+pdf("response_vs_modelvals_boxplot.pdf", height = 7, width = 10)
+par(mfrow = c(3,4), oma = c(4,3,0,0), mar = c(2,2,1,1))
+boxplot(log(tn_meanval)~tn_change, data = lake.predictors, xaxt = "n")
+boxplot(log(tp_meanval)~tp_change, data = lake.predictors, xaxt = "n")
+boxplot(log(tntp_meanval)~tntp_change, data = lake.predictors, xaxt = "n")
+boxplot(log(chl_meanval)~chl_change, data = lake.predictors, xaxt = "n")
+
+boxplot(tn_medyear~tn_change, data = lake.predictors, xaxt = "n")
+boxplot(tp_medyear~tp_change, data = lake.predictors, xaxt = "n")
+boxplot(tntp_medyear~tntp_change, data = lake.predictors, xaxt = "n")
+boxplot(chl_medyear~chl_change, data = lake.predictors, xaxt = "n")
+
+boxplot(tn_nyear~tn_change, data = lake.predictors, xlab = "TN Change")
+boxplot(tp_nyear~tp_change, data = lake.predictors, xlab = "TP Change")
+boxplot(tntp_nyear~tntp_change, data = lake.predictors, xlab = "TN:TP Change")
+boxplot(chl_nyear~chl_change, data = lake.predictors, "Chl Change")
+
+mtext("TN Change", side=1, line = 2, adj=0.11, outer = TRUE)
+mtext("TP Change", side=1, line = 2, adj=0.38, outer = TRUE)
+mtext("TN:TP Change", side=1, line = 2, adj=0.65, outer = TRUE)
+mtext("Chl Change", side=1, line = 2, adj=0.92, outer = TRUE)
+
+mtext("log Mean Value", side = 2, line = 1, adj=.9, outer = TRUE, padj = 1)
+mtext("Median Obs. Year", side = 2, line = 1, adj=.5, outer = TRUE, padj = 1)
+mtext("N Years", side = 2, line = 1, adj=.14, outer = TRUE, padj = 1)
+
+dev.off()
+## create a 4x3 panel that shows all responses ~ mean value/med year/nobs
+## now by plotting coefficients for each lake
+#plot(tn_coef_mean~log(tn_meanval), data = lake.predictors)
+
+pdf("response_vs_modelvals.pdf")
+par(mfcol = c(4,3), oma = c(4,3,0,0), mar = c(2,1,2,1))
+plot(tn_coef_mean~log(tn_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
+abline(h=0, col = "red")
+x = log(lake.predictors$tn_meanval[!is.na(lake.predictors$tn_meanval)])
+y = lake.predictors$tn_coef_mean[!is.na(lake.predictors$tn_coef_mean)]
+test = lowess(x= x, y=y)
+lines(lowess(x,y), col = "yellow")
+plot(tp_coef_mean~log(tp_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
+abline(h=0, col = "red")
+plot(tntp_coef_mean~log(tntp_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
+abline(h=0, col = "red")
+plot(chl_coef_mean~log(chl_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
+abline(h=0, col = "red")
+
+
+plot(tn_coef_mean~tn_medyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
+abline(h=0, col = "red")
+axis(side=2,labels=F) 
+plot(tp_coef_mean~tp_medyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
+abline(h=0, col = "red")
+axis(side=2,labels=F) 
+plot(tntp_coef_mean~tntp_medyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
+abline(h=0, col = "red")
+axis(side=2,labels=F) 
+plot(chl_coef_mean~chl_medyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
+abline(h=0, col = "red")
+axis(side=2,labels=F) 
+
+plot(tn_coef_mean~tn_nyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
+abline(h=0, col = "red")
+axis(side=2,labels=F) 
+plot(tp_coef_mean~tp_nyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
+abline(h=0, col = "red")
+axis(side=2,labels=F) 
+plot(tntp_coef_mean~tntp_nyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
+abline(h=0, col = "red")
+axis(side=2,labels=F) 
+plot(chl_coef_mean~chl_nyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
+abline(h=0, col = "red")
+axis(side=2,labels=F) 
+mtext("TN Change", side=2, line = 1, adj=0.91, outer = TRUE)
+mtext("TP Change", side=2, line = 1, adj=0.64, outer = TRUE)
+mtext("TN:TP Change", side=2, line = 1, adj=0.35, outer = TRUE)
+mtext("Chl Change", side=2, line = 1, adj=0.07, outer = TRUE)
+
+mtext("log Mean Value", side = 1, line = 0, adj=.14, outer = TRUE, padj = 1)
+mtext("Median Obs. Year", side = 1, line = 0, adj=.52, outer = TRUE, padj = 1)
+mtext("N Years", side = 1, line = 0, adj=.88, outer = TRUE, padj = 1)
+dev.off()
