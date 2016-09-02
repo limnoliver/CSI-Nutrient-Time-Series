@@ -219,73 +219,10 @@ change.db.tntp = mod.resim(tntp.3fr23, data.tntp)
 change.db.chl = mod.resim(chl.3fr23, data.chl)
 
 # plotting data from mod.resim
-
 # look at random effects:
 
 plotREsim(change.db.chl[[3]][change.db.chl[[3]]$term=="sampleyear_cor",])
 
-tn.01 = lmer(log(tn_umol) ~ 1 + (1|hu4_zoneid), data = data.tn, REML = TRUE)
-
-
-par(mfrow=c(2,2))
-plot(fitted(tn.full),resid(tn.full,type="pearson"),col="blue")
-abline(h=0,lwd=2)
-qqnorm(resid(tn.full)) #normality of the residuals
-qqline(resid(tn.full))
-
-tn.02 = lmer(log(tn_umol) ~ 1 + (1|lagoslakeid) + (1|hu4_zoneid), data = data.tn, REML=TRUE)
-tn.01b = lmer(log(tn_umol) ~ 1 + (1|hu4_zoneid), data = data.tn, REML = TRUE)
-exactLRT(m = tn.02, m0 = tn.01)
-# compare random effects structures between lagoslakeid and adding region
-
-b.01 <- bootMer(tn.01, use.u = FALSE, type = "parametric", FUN = function(x) as.numeric(logLik(x)), nsim = 1000)
-b.02 <- bootMer(tn.02, FUN = function(x) as.numeric(logLik(x)), nsim = 1000, use.u = FALSE, type = "parametric")
-
-# the observed LRT value
-lrt <- as.numeric(-2 * logLik(tn.01) + 2 * logLik(tn.02))
-# the 100 bootstrapped LRT
-lrt.b <- -2 * b.01$t + 2 * b.02$t
-
-# plot
-quant <- quantile(lrt.b, probs = c(0.025, 0.975))
-plot(1, lrt, xlab = "", ylab = "Likelihood ratio test", 
-     xaxt = "n", ylim = c(quant[1] + 1, quant[2] + 1))
-abline(h = 0, lty = 2, lwd = 2, col = "red")
-segments(1, quant[1], 1, quant[2], lend = 1)
-#2-level with time
-
-model.1 <- function(nutrient, data) {
-  return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid), data = data))
-}
-
-tn.1 = model.1(data.tn$tn_umol, data.tn)
-tp.1 = model.1(data.tp$tp_umol, data.tp)
-
-plotREsim(REsim(tn.01, n.sims = 1000))
-
-
-#3-level unconditional
-model.02 <- function(nutrient, data) {
-  return(lmer(log(nutrient) ~ 1 + (1|lagoslakeid) + (1|hu4), data = data))
-}
-
-tn.02 = model.02(data.tn$tn_umol, data.tn)
-tp.02 = model.02(data.tp$tp_umol, data.tp)
-
-
-#3-level with time
-
-# get huc4 IDs into databases
-huc4 = data.lake.specific[,c("lagoslakeid", "hu4")]
-data.tn = merge(data.tn, huc4, by = "lagoslakeid", all.x = TRUE)
-data.tp = merge(data.tp, huc4, by = "lagoslakeid", all.x = TRUE)
-
-model.2 <- function(nutrient, data) {
-  return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4), data = data))
-}
-
-tn.2 = model.2(data.tn$tn_umol, data.tn)
-tp.2 = model.2(data.tp$tp_umol, data.tp)
 
 
 
