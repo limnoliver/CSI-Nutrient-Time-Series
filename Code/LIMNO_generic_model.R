@@ -218,26 +218,20 @@ change.db.tp = mod.resim(tp.3fr23, data.tp)
 change.db.tntp = mod.resim(tntp.3fr23, data.tntp)       
 change.db.chl = mod.resim(chl.3fr23, data.chl)
 
+# plotting data from mod.resim
+
+# look at random effects:
+
 plotREsim(change.db.chl[[3]][change.db.chl[[3]]$term=="sampleyear_cor",])
-change.db.tntp = plotREsim(resim)$data
 
 tn.01 = lmer(log(tn_umol) ~ 1 + (1|hu4_zoneid), data = data.tn, REML = TRUE)
 
-tn.full = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4_zoneid), data = data.tn)
-test = REsim(tn.full,n.sims=1000)
-plotREsim(test[test$term=="sampleyear_cor",])
 
 par(mfrow=c(2,2))
 plot(fitted(tn.full),resid(tn.full,type="pearson"),col="blue")
 abline(h=0,lwd=2)
 qqnorm(resid(tn.full)) #normality of the residuals
 qqline(resid(tn.full))
-qqnorm(ranef(tn.full)$lagoslakeid[,1])
-qqline(ranef(tn.full)$lagoslakeid[,1])
-qqnorm(ranef(tn.full)$hu4_zoneid[,2])
-qqline(ranef(tn.full)$hu4_zoneid[,2])
-
-dotplot(ranef(tn.full, condVar=TRUE))
 
 tn.02 = lmer(log(tn_umol) ~ 1 + (1|lagoslakeid) + (1|hu4_zoneid), data = data.tn, REML=TRUE)
 tn.01b = lmer(log(tn_umol) ~ 1 + (1|hu4_zoneid), data = data.tn, REML = TRUE)
@@ -295,64 +289,6 @@ tp.2 = model.2(data.tp$tp_umol, data.tp)
 
 
 
-## run models with standardized data to make slopes directly comparable
-tn.model = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
-tp.model = lmer(log(tp_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
-tntp.model = lmer(log(tn_tp_umol) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
-secchi.model = lmer(log(secchi) ~ sampleyear_cor + (sampleyear_cor|lagoslakeid), data = data, REML=FALSE)
-
-## extract random coefficients
-blup.tn = coef(tn.model)
-blup.tp = coef(tp.model)
-blup.tntp = coef(tntp.model)
-blup.secchi = coef(secchi.model)
-
-## turn random coefficient list into a dataframe
-## also express BLUPs as a percent by multiplying by 100
-
-#calculate starting concnetrations for each lake
-
-
-blup.tn = data.frame(intercepts = blup.tn$lagoslakeid[[1]], 
-                     slopes = blup.tn$lagoslakeid[[2]],
-                     lagoslakeid = row.names(blup.tn$lagoslakeid))
-blup.tp = data.frame(intercepts = blup.tp$lagoslakeid[[1]], 
-                     slopes = blup.tp$lagoslakeid[[2]],
-                     lagoslakeid = row.names(blup.tp$lagoslakeid))
-blup.tntp = data.frame(intercepts = blup.tntp$lagoslakeid[[1]], 
-                       slopes = blup.tntp$lagoslakeid[[2]],
-                       lagoslakeid = row.names(blup.tntp$lagoslakeid))
-blup.secchi = data.frame(intercepts = blup.secchi$lagoslakeid[[1]], 
-                         slopes = blup.secchi$lagoslakeid[[2]],
-                         lagoslakeid = row.names(blup.secchi$lagoslakeid))
-
-# simulate random effects with posterior distributions
-# Uses the Gelman sim technique to built Bayes estimates
-
-tn.randoms = plotREsim(REsim(tn.model, n.sims=500))
-tp.randoms = plotREsim(REsim(tp.model, n.sims=500))
-tntp.randoms = plotREsim(REsim(tntp.model, n.sims=500))
-secchi.randoms = plotREsim(REsim(secchi.model, n.sims=500))
-
-
-
-#get TRUE/FALSE out of whether each point is significantly different
-#from zero based on above simulations
-
-tn.diff.zero = data.frame(lagoslakeid = tn.randoms$data$groupID[tn.randoms$data$term=="sampleyear_cor"], 
-                          sig = tn.randoms$data$sig[tn.randoms$data$term=="sampleyear_cor"])
-tp.diff.zero = data.frame(lagoslakeid = tp.randoms$data$groupID[tp.randoms$data$term=="sampleyear_cor"], 
-                          sig =  tp.randoms$data$sig[tp.randoms$data$term=="sampleyear_cor"])
-tntp.diff.zero = data.frame(lagoslakeid = tntp.randoms$data$groupID[tntp.randoms$data$term=="sampleyear_cor"], 
-                          sig = tntp.randoms$data$sig[tntp.randoms$data$term=="sampleyear_cor"])
-secchi.diff.zero = data.frame(lagoslakeid = secchi.randoms$data$groupID[secchi.randoms$data$term=="sampleyear_cor"], 
-                          sig = secchi.randoms$data$sig[secchi.randoms$data$term=="sampleyear_cor"])
-
-#combine BLUP output with simulated different from zero estimates above
-blup.tn = merge(blup.tn, tn.diff.zero, by = "lagoslakeid", all.x = TRUE )
-blup.tp = merge(blup.tp, tp.diff.zero, by = "lagoslakeid", all.x = TRUE )
-blup.tntp = merge(blup.tntp, tntp.diff.zero, by = "lagoslakeid", all.x = TRUE )
-blup.secchi = merge(blup.secchi, secchi.diff.zero, by = "lagoslakeid", all.x = TRUE )
 
 #####################
 ## Figures ##
