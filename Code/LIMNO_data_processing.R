@@ -82,23 +82,9 @@ stoich.summer = stoich.summer[stoich.summer$tn_tp_umol < 1000, ]
 #for TN:TP, TN, TP in each lake for every year of observation
 intra.annual.tn = aggregate(tn.summer$tn_umol, tn.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 intra.annual.tp = aggregate(tp.summer$tp_umol, tp.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
-intra.annual.tn.secchi = aggregate(tn.summer$secchi, tn.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x), sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
-intra.annual.tp.secchi = aggregate(tp.summer$secchi, tp.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x), sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 intra.annual.chl = aggregate(chl.summer$chla, chl.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 intra.annual.tntp = aggregate(stoich.summer$tn_tp_umol, stoich.summer[,c("lagoslakeid", "sampleyear")], FUN=function(x) c(mean=mean(x),sd=sd(x), covar=sd(x)/mean(x), nobs=length(x)))
 
-year.means.tn.secchi = data.frame(lagoslakeid = intra.annual.tn.secchi$lagoslakeid, 
-                                  sampleyear = intra.annual.tn.secchi$sampleyear, 
-                                  secchi = intra.annual.tn.secchi$x[,1], 
-                                  sd = intra.annual.tn.secchi$x[,2], 
-                                  covar = intra.annual.tn.secchi$x[,3], 
-                                  nobs = intra.annual.tn.secchi$x[,4])
-year.means.tp.secchi = data.frame(lagoslakeid = intra.annual.tp.secchi$lagoslakeid, 
-                                  sampleyear = intra.annual.tp.secchi$sampleyear, 
-                                  secchi = intra.annual.tp.secchi$x[,1], 
-                                  sd = intra.annual.tp.secchi$x[,2], 
-                                  covar = intra.annual.tp.secchi$x[,3], 
-                                  nobs = intra.annual.tp.secchi$x[,4])
 
 year.means.tn = data.frame(lagoslakeid = year.means.tn$lagoslakeid, 
                            sampleyear = year.means.tn$sampleyear, 
