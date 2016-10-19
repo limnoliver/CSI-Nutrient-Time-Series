@@ -22,8 +22,9 @@ data$tn_calculated = data$tkn + data$no2no3
 data$tn_combined = data$tn
 data$tn_combined[which(is.na(data$tn_combined) == TRUE)] = data$tn_calculated[which(is.na(data$tn_combined) == TRUE)]
 
-# create a data subset of TN and TP (independent) where there has to be 
+# create a data subset of TN, TP, CHL (independent) where there has to be 
 # TN or TP observations, respectively
+# Create stoich dataset where there has to be coincident TN and TP measurements
 
 tn = data[is.na(data$tn_combined)==FALSE, ]
 tp = data[is.na(data$tp)==FALSE, ]
@@ -43,7 +44,7 @@ tp.summer = tp[tp$samplemonth == 6|tp$samplemonth == 7|tp$samplemonth==8|tp$samp
 chl.summer = chl[chl$samplemonth == 6|chl$samplemonth == 7|chl$samplemonth==8|chl$samplemonth==9, ]
 stoich.summer = stoich[stoich$samplemonth == 6|stoich$samplemonth == 7|stoich$samplemonth==8|stoich$samplemonth==9, ]
 
-# now, get rid of first half of June and second half of Sept
+# get rid of first half of June and second half of Sept
 tn.summer$sampleday = format(tn.summer$sampledate, "%d")
 tn.summer$sampleday = as.numeric(tn.summer$sampleday)
 
@@ -176,15 +177,13 @@ modern.tp.e10 = duration.filter(modern.tp.e10)
 modern.tn.e10 = duration.filter(modern.tn.e10)
 modern.tntp.e10 = duration.filter(modern.tntp.e10)
 
-# create a mixed model where the nutrient is the response, year is the 
-# the predictor, and slopes and intercepts are allowed to vary by lake (grouping)
-
+# create year variable that starts at 1990
 modern.tp.e10$sampleyear_cor = modern.tp.e10$sampleyear - 1990
 modern.tn.e10$sampleyear_cor = modern.tn.e10$sampleyear - 1990
 modern.chl.e10$sampleyear_cor = modern.chl.e10$sampleyear - 1990
 modern.tntp.e10$sampleyear_cor = modern.tntp.e10$sampleyear - 1990
 
-#write data files
+#write data files to use for time series analysis
 setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
 write.table(modern.tn.e10, "timeseries_data_tn.txt")
 write.table(modern.tp.e10, "timeseries_data_tp.txt")
