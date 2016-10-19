@@ -1092,34 +1092,9 @@ dev.off()
 # create violin plots of important predictors identified by the rf
 
 library(ggplot2)
-quant.low = function(x){
-  quantile(x,.25)
-}
-quant.high = function(x){
-  quantile(x,.75)
-}
-pdf("chl_top_var.pdf")
-par(mfrow=c(1,4))
-for (i in 1:length(top.vars)){
-  #dat.keep = complete.cases(lake.predictors[,c(paste(top.vars$Response_Variable[i],"_change",sep=""),top.vars$Predictor_Variable[i]])
-  xvar = paste(top.vars$Response_Variable[i],"_change",sep="")
-  yvar = as.character(top.vars$Predictor_Variable[i])
-  dat.comp = lake.predictors[,c(xvar,yvar)]
-  dat.comp = dat.comp[complete.cases(dat.comp),]
-  ggplot(data=dat.comp, aes(x=get(xvar), y=get(yvar), fill=get(xvar))) + 
-    geom_violin()+
-    theme_classic()+
-    stat_summary(fun.ymin = "quant.low", 
-                 fun.y = "median",
-                 fun.ymax = "quant.high",
-                 geom="pointrange", shape = 3) +
-    scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
-    labs(x=paste(top.vars$Response_fullname[i]), 
-         y=paste(top.vars$Predictor_fullname[i])) +
-    theme(legend.position="none")
-  
-}
 
+pdf("tntp_top_var.pdf")
+#TP vs ppt change
 ggplot(dat.keep, aes(x=tp_change, y=ppt_change, fill=tp_change)) + 
   geom_violin()+
   theme_classic()+
@@ -1130,12 +1105,63 @@ ggplot(dat.keep, aes(x=tp_change, y=ppt_change, fill=tp_change)) +
   scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
   labs(x="TP Change", y="Regional Precipitation Change")+
   guides(fill=FALSE)+
+  theme(axis.title=element_text(size = rel(2))) +
+  theme(axis.text=element_text(size = rel(1.6))) +
+  theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
+  theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
+
+#TN vs regional TN dep 1990
+ggplot(dat.keep, aes(x=tn_change, y=hu4_dep_totaln_1990_mean, fill=tn_change)) + 
+  geom_violin()+
+  theme_classic()+
+  stat_summary(fun.ymin = "tenth", 
+               fun.y = "median",
+               fun.ymax = "ninetieth",
+               geom="pointrange", shape = 3) +
+  scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
+  labs(x="TN Change", y="Regional TN Deposition 1990")+
+  guides(fill=FALSE)+
+  theme(axis.title=element_text(size = rel(2))) +
+  theme(axis.text=element_text(size = rel(1.6))) +
+  theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
+  theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
+
+#TN:TP vs regional road density
+ggplot(dat.keep, aes(x=tntp_change, y=hu4_roaddensity_density_mperha, fill=tntp_change)) + 
+  geom_violin()+
+  theme_classic()+
+  stat_summary(fun.ymin = "tenth", 
+               fun.y = "median",
+               fun.ymax = "ninetieth",
+               geom="pointrange", shape = 3) +
+  scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
+  labs(x="TN:TP Change", y="Regional Road Density")+
+  guides(fill=FALSE)+
+  theme(axis.title=element_text(size = rel(2))) +
+  theme(axis.text=element_text(size = rel(1.6))) +
+  theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
+  theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
+
+#Chl vs Regional mean temp in 2011
+ggplot(dat.keep, aes(x=chl_change, y=tmean.2011, fill=chl_change)) + 
+  geom_violin()+
+  theme_classic()+
+  stat_summary(fun.ymin = "tenth", 
+               fun.y = "median",
+               fun.ymax = "ninetieth",
+               geom="pointrange", shape = 3) +
+  scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
+  labs(x="Chl Change", y="Regional Mean Temperature in 2011")+
+  guides(fill=FALSE)+
   theme(axis.title=element_text(size = rel(1.5))) +
   theme(axis.text=element_text(size = rel(1.2))) +
-  theme(axis.text.y=element_text(margin=margin(2,2,3,3,"pt")))+
-  theme(axis.text.x=element_text(margin=margin(2,2,3,3,"pt")))
+  theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
+  theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
+dev.off()
 
 
+###################################
+###################################
 pdf("response_vs_modelvals.pdf")
 par(mfcol = c(4,3), oma = c(4,3,0,0), mar = c(2,1,2,1))
 plot(tn_coef_mean~log(tn_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
