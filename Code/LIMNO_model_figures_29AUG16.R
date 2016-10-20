@@ -299,7 +299,7 @@ plot(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[tem
      xlim = c(-6,6), ylim = c(-6, 3))
 # Tn no change, TP no change
 points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_ymax > 0],
-       pch=1, cex = 1.5)
+       cex = 1.5, bg = rgb(254,254,254,max=255,alpha=178), pch=21)
 #TN up, TP up
 points(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymin > 0 & temp$tp_ymin > 0],
        col = "black", bg = col.both, pch=19, cex = 1.5)
