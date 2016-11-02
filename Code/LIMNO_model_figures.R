@@ -273,60 +273,6 @@ abline(v=0, col = col.tp, lwd = 3)
 dev.off()
 
 
-
-###################################################
-## create a histogram of mean tn & tp observations
-###################################################
-
-pdf("hist_TN_TP_vals.pdf")
-par(mar = c(5,5,4,2))
-
-hist(log10(data.tn$tn_umol), breaks = 20, 
-     main="", xlab = "TN or TP (umol)", ylab = "Density", bty="l", freq = FALSE, 
-     cex.lab = 1.8, cex.axis = 1.3, xaxt = "n", col = col.tn, xlim = c(-2,3))
-hist(log10(data.tp$tp_umol), breaks = 20, add = TRUE, col = col.tp, freq = FALSE)
-axis(side = 1, labels = c(0.01,0.1,1,10,100,1000), at = c(-2,-1,0,1,2,3), cex.axis = 1.3)
-
-
-# add legend
-legend(-2, 1, c("TN", "TP"), fill= c(col.tn, col.tp), cex = 1.2)
-
-text(1.8,.2,paste(round(mean(data.tn$tn_umol),0)), cex = 2.5, col = "white")
-text(-0.2,0.2,paste(round(mean(data.tp$tp_umol),0)), cex = 2.5, col = "white")
-dev.off()
-
-
-## create fig of precip data
-pdf("TN_precip_all.pdf")
-par(mar=c(5,5,1,1))
-
-plot(log(dat$tn_umol) ~ dat$precip_spring,
-     xlab = "Standardized Winter Precip", 
-     ylab = "log TN (umol)", 
-     cex = 1.5, cex.lab = 2, cex.axis = 1.5)
-abline(4.16, .012, col = "red", lwd = 3)
-
-
-abline(3.9, .01, col = "blue", lwd = 2)
-abline(2.3, -0.02, col = "blue", lwd = 2)
-abline(5, 0.03, col = "blue", lwd = 2)
-abline(4.8, .04, col = "blue", lwd = 2)
-abline(3.2, .001, col = "blue", lwd = 2)
-
-dev.off()
-
-
-## create histograms of estimates of % change
-jpeg("TN_TP_change_hist.jpg", height=200, width=800)
-
-par(mar = c(5,5,4,2))
-hist(change.db$tp.slopes, col=col.tp, breaks=20,
-     main="",xlab = "", ylab = "", bty="l", freq = TRUE, 
-     cex.lab = 1.8, cex.axis = 1.3, yaxt = "n", xlim = c(-0.08, 0.06))
-
-
-dev.off()
-
 ############################################################
 ## create dotplot that shows bias in type of lakes that we sample
 ############################################################
