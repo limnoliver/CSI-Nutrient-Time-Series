@@ -129,49 +129,6 @@ region.blups = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(1,3)], temp.tp[tem
 region.blups = merge(region.blups, temp.chl[temp.chl$term == "sampleyear_cor",c(1,3)], by = "hu4_zoneid", all = TRUE)
 region.blups = merge(region.blups, temp.tntp[temp.tntp$term == "sampleyear_cor",c(1,3)], by = "hu4_zoneid", all = TRUE)
 
-######################################
-## create histograms of probabilities
-######################################
-
-pdf("TN_TP_change_prob.pdf")
-par(mar = c(5,5,4,2))
-hist(change.db.tn$tn.slopes.p, breaks = 20, 
-     main="", xlab = "Probability of Change", ylab = "Density", bty="l", freq = FALSE, 
-     cex.lab = 1.8, cex.axis = 1.3, xaxt = "n", col = col.tn)
-hist(change.db.tp$tp.slopes.p, breaks = 20, add = TRUE, col = col.tp, freq = FALSE)
-axis(side = 1, labels = c(1,0.5,0,0.5,1), at = c(-1,-0.5,0,.5,1), cex.axis = 1.3)
-
-# add red line at zero
-abline(v = 0, col = "red", lwd = 2, lty = 2)
-
-# add text
-text(-0.7, .1, "Decreasing", col = "white", cex = 1.3)
-text(0.7, .1, "Increasing", col = "white", cex = 1.3)
-text(0, .1, "No Trend", col = "white", cex = 1.3)
-
-# add legend
-legend(0.5, .7, c("TN", "TP"), fill= c(col.tn, col.tp))
-
-dev.off()
-
-###############################################
-## create histograms of estimates of % change
-################################################
-pdf("TN_TP_change_hist.pdf")
-
-par(mar = c(5,5,4,2))
-hist(change.db.tn$tn.slopes, col=col.tn, breaks=20,
-     main="", xlab = "% Change per year", ylab = "Density", bty="l", freq = FALSE, 
-     cex.lab = 1.8, cex.axis = 1.3, xaxt = "n", xlim = c(-0.08, 0.07))
-axis(side = 1, labels = c(-8,-6, -4, -2, 0, 2, 4, 6), at = c(-0.08,-.06, -0.04, -0.02,0,.02,.04,0.06))
-hist(change.db.tp$tp.slopes, add=TRUE, breaks=30, col=col.tp, freq = FALSE)
-legend(-0.06, 30, c("TN", "TP"), fill= c(col.tn, col.tp))
-
-
-# add red line at zero
-abline(v = 0, col = "red", lwd = 2, lty = 2)
-
-dev.off()
 
 #################################################
 # create a map with pos/neg change in TN and TP
