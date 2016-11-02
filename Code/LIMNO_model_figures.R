@@ -18,17 +18,6 @@ n.tp = 2096
 n.tntp = 742
 n.chl = 2143
 
-
-
-# create dataframe of change values for post 2006 data
-n.tp.07 = 1671
-tp.slopes.07 = as.numeric(output_TP_07[c((n.tp.07+1):(2*n.tp.07)),1])
-tp.slopes.07 = data.frame(tp.slopes.07 = tp.slopes.07, lake_num = c(1:n.tp.07))
-lake.conv = dat[,c(1,8)]
-lake.conv = unique(lake.conv)
-tp.slopes.07 = merge(tp.slopes.07, lake.conv, by = "lake_num", all.x = TRUE)
-
-
 n.tn.07 = 568
 tn.slopes.07 = as.numeric(output_TN_07[c((n.tn.07+1):(2*n.tn.07)),1])
 tn.slopes.07 = data.frame(tn.slopes.07 = tn.slopes.07, lake_num = c(1:n.tn.07))
