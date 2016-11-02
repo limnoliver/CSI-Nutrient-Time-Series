@@ -274,32 +274,6 @@ dev.off()
 
 
 
-######################################
-## create a map that shows how many year records the lake has
-#######################################
-
-library(plyr)
-counts = count(data.tp, vars = "lagoslakeid")
-counts = merge(counts, data.lake.specific[,c(1,3,4)], "lagoslakeid", all.x = TRUE)
-
-counts = count(data.tn, vars = "lagoslakeid")
-median(counts$freq)
-
-pdf("TN_Num_yrs_location.pdf")
-map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
-                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
-                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
-                                  "Vermont", "New Hampshire","Maine"), fill = TRUE, col = "lightgray")
-points(counts$nhd_long,counts$nhd_lat, 
-       cex=counts$freq/10, col  = col.tn, pch = 16)
-
-legend(-83, 49, 
-       c("2 years", "5 years", "10 years", "20 years"), 
-       pt.cex = c(2/10, 5/10, 10/10, 20/10), 
-       pch = 16, 
-       col = col.tn)
-dev.off()
-
 ###################################################
 ## create a histogram of mean tn & tp observations
 ###################################################
