@@ -18,14 +18,6 @@ n.tp = 2096
 n.tntp = 742
 n.chl = 2143
 
-n.tn.07 = 568
-tn.slopes.07 = as.numeric(output_TN_07[c((n.tn.07+1):(2*n.tn.07)),1])
-tn.slopes.07 = data.frame(tn.slopes.07 = tn.slopes.07, lake_num = c(1:n.tn.07))
-lake.conv = dat[,c(1,8)]
-lake.conv = unique(lake.conv)
-tn.slopes.07 = merge(tn.slopes.07, lake.conv, by = "lake_num", all.x = TRUE)
-
-
 setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
 data.lake.specific = read.table("lagos_lakes_10541.txt", 
                                 header = TRUE, 
