@@ -8,6 +8,7 @@ require(maps)
 library(merTools)
 library(ggplot2)
 library(RLRsim)
+library(randomForest)
 
 # load data that has already been filtered to meet the timeseries requirements
 setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
@@ -224,6 +225,13 @@ change.db.chl = mod.resim(chl.3fr23, data.chl)
 plotREsim(change.db.chl[[3]][change.db.chl[[3]]$term=="sampleyear_cor",])
 
 
+####################################
+## random forest analysis ##
+####################################
+
+## This code uses the predictor variables located at: 
+## to predict whether a lake is increasing, decreasing, or not changing
+## in the four response variables (TN, TP, TN:TP, Chl)
 
 
 
