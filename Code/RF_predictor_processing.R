@@ -16,26 +16,26 @@
 ## 5) topography at the huc 4 scale
 ## 6) model parameters: number of lakes, mean concentration in region
 
-##################################################################
-## create list of lakes and regions from all nutrient analyses
-##################################################################
+## get list of 2913 unique lakes that have nutrient data
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Publication")
+lakes = read.csv("LAGOS_summer_meanvals.csv", header = TRUE)
+lakes = unique(lakes$lagoslakeid)
 
-setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
-all.lakes = read.table( "lmer_change_db.txt", header = TRUE)
+## import lake-specific data (e.g., depth, area, etc)
+setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
+all.lakes = read.table("lagos_lakes_10541.txt", 
+                       header = TRUE, 
+                       sep = "\t", 
+                       quote = "", 
+                       dec = ".", 
+                       strip.white = TRUE,
+                       comment.char = "")
 
+## limit to variables of interest
+all.lakes = all.lakes[,c(1,3:5,12,38)]
 
-# merge with lake-specific info including
-# lat/long, depth, area,
-
-all.lakes = merge(all.lakes,
-                  lake.info[,c("lagoslakeid", "nhd_lat", "nhd_long", "lake_area_ha", "maxdepth",
-                               "hu4_zoneid", "iws_areaha", "lakeconnectivity")],
-                  by = "lagoslakeid",
-                  all.x = TRUE)
-
-################################################
-## create data frame of lake-specific predictors
-################################################
+## limit to lakes in time series analysis
+lakes = subset(all.lakes, all.lakes$lagoslakeid %in% lakes)
 
 setwd("~/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
 setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
@@ -59,4 +59,13 @@ iws.lulc = iws.lulc[,c(1,8,146,149,155,156,159:162)]
 # rename ID var to allow merge with lake.info
 
 names(iws.lulc)[6] = "lagoslakeid" 
+
+
+
+
+# filter IWS to lakes in time series analysis
+
+geo.data = merge(iws.lulc, iws.lulc$lagoslakeid %in% lakes)
+
+
 
