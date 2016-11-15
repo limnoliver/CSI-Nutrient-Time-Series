@@ -189,3 +189,29 @@ write.table(modern.tn.e10, "timeseries_data_tn.txt")
 write.table(modern.tp.e10, "timeseries_data_tp.txt")
 write.table(modern.chl.e10, "timeseries_data_chl.txt")
 write.table(modern.tntp.e10, "timeseries_data_tntp.txt")
+
+# generate vertical file for publication
+modern.tn.e10$variable = "tn_umol"
+modern.tp.e10$variable = "tp_umol"
+modern.tntp.e10$variable = "tn_tp_umol"
+modern.chl.e10$variable = "chl_ugL"
+
+# generate vertical file
+data.tn$variable = "tn_umol"
+data.tp$variable = "tp_umol"
+data.tntp$variable = "tn_tp_umol"
+data.chl$variable = "chl_ugL"
+
+names(data.tn)[3] = "value" 
+names(data.tp)[3] = "value"
+names(data.chl)[3] = "value"
+names(data.tntp)[5] = "value"
+
+data.tntp = data.tntp[,c(1,2,5,6,7,8,9)]
+data.tntp = data.tntp[,c(1,2,3,5,6,7)]
+data.tn = data.tn[,-4]
+data.tp = data.tp[,-4]
+data.vert = rbind(data.tn, data.tp, data.tntp, data.chl)
+
+write.csv(data.vert, "LAGOS_summer_meanvals.csv", row.names = FALSE)
+
