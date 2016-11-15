@@ -166,7 +166,19 @@ geo.data = merge(geo.data, ppt.2011, by = "hu4_zoneid", all.x = TRUE)
 
 #############################
 # import connectivity metrics
+setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
 hu4.conn = read.table("hu4_conn.txt", header = TRUE)
+hu4.conn = hu4.conn[,c(1,4,7,12,27,79)]
+
+geo.data = merge(geo.data, hu4.conn, by = "hu4_zoneid", all.x = TRUE)
+
 # import land use/land cover data
 hu4.lulc = read.table("hu4_lulc.txt", header = TRUE)
+hu4.lulc$hu4_urban = hu4.lulc$hu4_nlcd2001_pct_22 + hu4.lulc$hu4_nlcd2001_pct_23 + hu4.lulc$hu4_nlcd2001_pct_24
+hu4.lulc$hu4_crop = hu4.lulc$hu4_nlcd2001_pct_82
+hu4.lulc$hu4_pasture = hu4.lulc$hu4_nlcd2001_pct_81
+hu4.lulc$hu4_forest = hu4.lulc$hu4_nlcd2001_pct_41 + hu4.lulc$hu4_nlcd2001_pct_42 + hu4.lulc$hu4_nlcd2001_pct_43
 
+hu4.lulc = hu4.lulc[,c(1,8,158,161,167:170)]
+
+geo.data = merge(geo.data, hu4.lulc, by = "hu4_zoneid", all.x = TRUE)
