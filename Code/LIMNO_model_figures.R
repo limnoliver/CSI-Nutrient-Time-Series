@@ -272,7 +272,6 @@ abline(v=0, col = col.tp, lwd = 3)
 
 dev.off()
 
-
 ###############################################
 ## create figures showing change in TN and TP from after 1990
 ## to change in TN and TP after 2000
