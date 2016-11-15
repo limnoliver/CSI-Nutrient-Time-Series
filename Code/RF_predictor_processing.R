@@ -43,29 +43,20 @@ setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
 # landuse/land cover data calculated at the watershed scale
 iws.lulc = read.table("iws_lulc.txt", header = TRUE)
 
-# reduce variables down to 2001 LULC data
-# also include topography metrics to test
+# create urban, row crop, pasture, wetland variables
+# from 2001 LULC data
 
-iws.lulc = iws.lulc[,c(1,49:80,147:156)]
-
-# create urban, row crop, pasture, wetland categories
-
-iws.lulc$iws_urban = iws.lulc$iws_nlcd2001_pct_22 + iws.lulc$iws_nlcd2001_pct_23 + iws.lulc$iws_nlcd2001_pct_24
-iws.lulc$iws_crop = iws.lulc$iws_nlcd2001_pct_82
+iws.lulc$iws_urban = iws.lulc$iws_nlcd2001_pct_22 + iws.lulc$iws_nlcd2001_pct_23 + iws.lulc$iws_nlcd2001_pct_24 
+iws.lulc$iws_crop = iws.lulc$iws_nlcd2001_pct_82 
 iws.lulc$iws_pasture = iws.lulc$iws_nlcd2001_pct_81
 iws.lulc$iws_forest = iws.lulc$iws_nlcd2001_pct_41 + iws.lulc$iws_nlcd2001_pct_42 + iws.lulc$iws_nlcd2001_pct_43
 
-# now narrow predictors
+# reduce variables down to 2001 LULC data
+# also include topography metrics to test
 
-iws.lulc = iws.lulc[,c(1,34:47)]
-
-# get rid of terrain metrics, with the exception of mean slope
-
-iws.lulc = iws.lulc[,c(1,4,10:15)]
-
+iws.lulc = iws.lulc[,c(1,8,146,149,155,156,159:162)]
 
 # rename ID var to allow merge with lake.info
 
-names(iws.lulc)[4] = "lagoslakeid"
-iws.lulc = iws.lulc[,c(2:8)]
+names(iws.lulc)[6] = "lagoslakeid" 
 
