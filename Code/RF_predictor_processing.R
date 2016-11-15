@@ -1,7 +1,7 @@
 ## This file prepares the predictor variables data frame for the random forest analysis
 ## first merges all relevant variables from various LAGOS geo tables
 
-## for lake-specific slopes, include:
+## for lake-specific predictors, include:
 ## 1) LULC at buffer scale (% ag, % forest, % urban, %wetland)
 ## 2) lake-specific features (depth, area)
 ## 3) connectivity type
