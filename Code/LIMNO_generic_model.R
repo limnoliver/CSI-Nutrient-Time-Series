@@ -1,25 +1,35 @@
 # load required packages
 # 
 library(lme4)
+library(RLRsim)
+library(merTools)
+
+
 library(MuMIn)
 library(arm)
 library(effects)
 require(maps)
-library(merTools)
-library(ggplot2)
-library(RLRsim)
 library(randomForest)
 
-# load data that has already been filtered to meet the timeseries requirements
-setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
+# modify below code to source published LTER data
+# but for now, data will look like: 
 
-data.tn = read.table("timeseries_data_tn.txt", header = TRUE)
-data.tp = read.table("timeseries_data_tp.txt", header = TRUE)
-data.tntp = read.table("timeseries_data_tntp.txt", header = TRUE)
-data.chl = read.table("timeseries_data_chl.txt", header = TRUE)
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Publication")
+all.nut.data = read.csv("LAGOS_summer_meanvals.csv", header = TRUE)
 
+# create a sample year column corrected to 1990
+
+all.nut.data$sampleyear_cor = all.nut.data$sampleyear - 1990
+
+# create individual dataframes that represent each nutrient
+
+data.tn = subset(all.nut.data, all.nut.data$variable == "tn_umol")
+data.tp = subset(all.nut.data, all.nut.data$variable == "tp_umol")
+data.tntp = subset(all.nut.data, all.nut.data$variable == "tn_tp_umol")
+data.chl = subset(all.nut.data, all.nut.data$variable == "chl_ugL")
 
 # merge data with HUC 4 regions
+# modify below code to source LTER geo data
 
 setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
 lake.info = read.table("lagoslakes_10400.txt", header = TRUE,
@@ -34,19 +44,12 @@ data.tp = merge(data.tp, lake.info[,c("lagoslakeid", "hu4_zoneid")])
 data.tntp = merge(data.tntp, lake.info[,c("lagoslakeid", "hu4_zoneid")])
 data.chl = merge(data.chl, lake.info[,c("lagoslakeid", "hu4_zoneid")])
 
+#################################
+## create hierarchical linear models
+#################################
+# 3-level unconditional
+# used to generate results of Table S2
 
-#2-level unconditional
-model.2u <- function(nutrient, data) {
-  return(lmer(log(nutrient) ~ 1 + (1|lagoslakeid), data = data, REML=TRUE))
-}
-
-tn.2u = model.2u(data.tn$tn_umol, data.tn)
-tp.2u = model.2u(data.tp$tp_umol, data.tp)
-tntp.2u = model.2u(data.tntp$tn_tp_umol, data.tntp)
-chl.2u = model.2u(data.chl$chl, data.chl)
-
-
-#3-level unconditional
 model.3u <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ 1 + (1|lagoslakeid) + (1|hu4_zoneid), data = data, REML=TRUE))
 }
@@ -54,42 +57,9 @@ model.3u <- function(nutrient, data) {
 tn.3u = model.3u(data.tn$tn_umol, data.tn)
 tp.3u = model.3u(data.tp$tp_umol, data.tp)
 tntp.3u = model.3u(data.tntp$tn_tp_umol, data.tntp)
-chl.3u = model.3u(data.chl$chl, data.chl)
+chl.3u = model.3u(data.chl$chl_ugL, data.chl)
 
-#3-level, random intercepts + fixed time effect
-
-model.3f <- function(nutrient, data) {
-  return(lmer(log(nutrient) ~ sampleyear_cor + (1|lagoslakeid) + (1|hu4_zoneid), data = data, REML=TRUE))
-}
-
-tn.3f = model.3f(data.tn$tn_umol, data.tn)
-tp.3f = model.3f(data.tp$tp_umol, data.tp)
-tntp.3f = model.3f(data.tntp$tn_tp_umol, data.tntp)
-chl.3f = model.3f(data.chl$chl, data.chl)
-
-#3-level, random intercepts + fixed time effect + random time:lake effect
-
-model.3fr2 <- function(nutrient, data) {
-  return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (1|hu4_zoneid), data = data, REML=TRUE))
-}
-
-tn.3fr2 = model.3fr2(data.tn$tn_umol, data.tn)
-tp.3fr2 = model.3fr2(data.tp$tp_umol, data.tp)
-tntp.3fr2 = model.3fr2(data.tntp$tn_tp_umol, data.tntp)
-chl.3fr2 = model.3fr2(data.chl$chl, data.chl)
-
-#3-level, random intercepts + fixed time effect + random time:region
-
-model.3fr3 <- function(nutrient, data) {
-  return(lmer(log(nutrient) ~ sampleyear_cor + (1|lagoslakeid) + (sampleyear_cor||hu4_zoneid), data = data, REML=TRUE))
-}
-
-tn.3fr3 = model.3fr3(data.tn$tn_umol, data.tn)
-tp.3fr3 = model.3fr3(data.tp$tp_umol, data.tp)
-tntp.3fr3 = model.3fr3(data.tntp$tn_tp_umol, data.tntp)
-chl.3fr3 = model.3fr3(data.chl$chl, data.chl)
-
-#3-level, random intercepts + fixed time effect + random time:region + random time:lake
+#3-level, random intercepts + fixed year effect + random year:region + random year:lake
 
 model.3fr23 <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4_zoneid), data = data, REML=TRUE))
@@ -98,18 +68,18 @@ model.3fr23 <- function(nutrient, data) {
 tn.3fr23 = model.3fr23(data.tn$tn_umol, data.tn)
 tp.3fr23 = model.3fr23(data.tp$tp_umol, data.tp)
 tntp.3fr23 = model.3fr23(data.tntp$tn_tp_umol, data.tntp)
-chl.3fr23 = model.3fr23(data.chl$chl, data.chl)
+chl.3fr23 = model.3fr23(data.chl$chl_ugL, data.chl)
 
-
-# test whether random effects should be included
+################################################
+## test whether random effects should be included
+################################################
 
 ## TEST: first test time:lagoslakeid
+## full model nutrient ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4_zoneid)
 
-# full model nutrient ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4_zoneid)
-
-#m = only random effect you want to test
-#mA = full model
-#m0 = all random except one you want to test
+## m = only random effect you want to test
+## mA = full model
+## m0 = all random except one you want to test
 
 model.m <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (0+sampleyear_cor|lagoslakeid), data = data, REML=TRUE))
@@ -129,7 +99,7 @@ tp.m0 <- model.m0(data.tp$tp_umol, data.tp)
 tntp.m0 <- model.m0(data.tntp$tn_tp_umol, data.tntp)
 chl.m0 <- model.m0(data.chl$chl, data.chl)
 
-#bootstrap model test
+## bootstrap model test
 
 tn.r2.test = exactRLRT(tn.m, tn.3fr23, tn.m0)
 tp.r2.test = exactRLRT(tp.m, tp.3fr23, tp.m0)
@@ -158,7 +128,7 @@ tp.m0 <- model.m0(data.tp$tp_umol, data.tp)
 tntp.m0 <- model.m0(data.tntp$tn_tp_umol, data.tntp)
 chl.m0 <- model.m0(data.chl$chl, data.chl)
 
-#bootstrap model test
+# bootstrap model test
 
 tn.r3.test = exactRLRT(tn.m, tn.3fr23, tn.m0)
 tp.r3.test = exactRLRT(tp.m, tp.3fr23, tp.m0)
