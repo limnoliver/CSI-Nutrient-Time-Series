@@ -64,22 +64,30 @@ names(iws.lulc)[3] = "lagoslakeid"
 geo.data = merge(lakes, iws.lulc, by = "lagoslakeid", all.x = TRUE)
 
 ################################
-## find lakes that are missing lake depth data, and merge with predicted data from Oliver et al 2016
-setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_lake depth/R Output")
-setwd("~/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_lake depth/R Output")
-pred.depths = read.table("lake_depth_data.txt", header = TRUE)
+# find lakes that are missing lake depth data, 
+# and merge with predicted data from Oliver et al 2016
+# sources published data on LTER data portal
 
-missing.depth = lake.predictors$lagoslakeid[is.na(lake.predictors$maxdepth)]
-filled.depths = pred.depths[pred.depths$lagoslakeid %in% missing.depth, ]
+infile1  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/320/4/4a283c25f3548c0f78d8a01658e4a353" 
+infile1 <- sub("^https","http",infile1) 
+depths <-read.csv(infile1,header=F, skip=1, sep=",", 
+                 col.names=c(
+                 "lagoslakeid",     
+                 "nhdid",     
+                 "hu4id",     
+                 "lat.decimal",     
+                 "long.decimal",     
+                 "area",     
+                 "zmaxobs",     
+                 "zmaxpredict"), check.names=TRUE)
+
+missing.depth = geo.data$lagoslakeid[is.na(geo.data$maxdepth)]
+filled.depths = depths[depths$lagoslakeid %in% missing.depth, ]
 filled.depths = filled.depths[,c(1,8)]
 names(filled.depths)[2] = "maxdepth"
 
-lake.predictors$maxdepth[lake.predictors$lagoslakeid %in% filled.depths$lagoslakeid]
-
-lake.predictors$maxdepth[lake.predictors$lagoslakeid %in% filled.depths$lagoslakeid] = filled.depths$maxdepth
-
-lake.predictors = merge(lake.predictors, lake.info[,c("lagoslakeid", "lagosname1")], by = "lagoslakeid", all.x = TRUE)
-
+temp = order(geo.data$lagoslakeid[which(geo.data$lagoslakeid %in% filled.depths$lagoslakeid)])
+geo.data$maxdepth[which(geo.data$lagoslakeid %in% filled.depths$lagoslakeid)][temp] = filled.depths$maxdepth
 
 #################
 # import watershed-scale connectivity metrics
@@ -200,4 +208,15 @@ hu4.lulc$hu4_forest = hu4.lulc$hu4_nlcd2001_pct_41 + hu4.lulc$hu4_nlcd2001_pct_4
 hu4.lulc = hu4.lulc[,c(1,8,158,161,167:170)]
 
 geo.data = merge(geo.data, hu4.lulc, by = "hu4_zoneid", all.x = TRUE)
+
+###########################################
+# change order of variables for publication
+############################################
+
+names(geo.data)
+geo.data = geo.data[,c(2,1,9,3:6,20,7,8,10:19,21,26,22,23,27,24,25,30,31,29,32,33,28,39:45,34:38)]
+
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Publication")
+write.csv(geo.data, "LAGOS_supporting_geophysical.csv", row.names=FALSE)
+
 
