@@ -51,6 +51,6 @@ tmean.hu4 = merge.climate.dat("tmean", "HU4")
 ppt.hu4 = merge.climate.dat("tmean", "HU4")
 
 setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
-write.csv(tmean.hu4, "tmean_hu4_monthly.csv")
-write.csv(ppt.hu4, "ppt_hu4_monthly.csv")
+write.table(tmean.hu4, "HU4_tmean_merge.txt")
+write.table(ppt.hu4, "HU4_ppt_merge.txt")
 
