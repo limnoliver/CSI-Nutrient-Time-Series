@@ -1,7 +1,7 @@
-## This code takes the climate files, which includes a separate file
-## for each month/year combination at each spatial scale and for each variable
-
-## See Sam Oliver for any questions
+# This code takes the climate files, which includes a separate file
+# for each month/year combination at each spatial scale 
+# and for each variable, and merges them so year, huc4 and each month 
+# are all columns
 
 require(tidyr)
 
