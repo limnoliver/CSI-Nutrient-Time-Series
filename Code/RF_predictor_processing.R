@@ -1,33 +1,24 @@
 library(tidyr)
-## This file prepares the predictor variables data frame for the random forest analysis
-## first merges all relevant variables from various LAGOS geo tables
 
-## for lake-specific predictors, include:
-## 1) LULC at buffer scale (% ag, % forest, % urban, %wetland)
-## 2) lake-specific features (depth, area)
-## 3) connectivity type
-## 4) topography
-## 5) model parameters: number of years of observation, median year, mean concentration
+# This code prepares the predictor variables data frame for the 
+# random forest analysis. Predictor variables were either considered
+# lake-specific (depth, area), watershed-scale (LULC in watershed),
+# or region-scale (LULC in HUC 4). Different groups of variables include
+# land use/land cover (LULC), climate, hydrology, topography, 
+# connectivity, and atmospheric deposition.
 
-## for region-specific slopes, include:
-## 1) LULC at huc 4 scale (% ag, %forest, % urban)
-## 2) climate at the huc4 scale (summer, yearly temp and precip)
-## 3) connectivity/hydrology at huc 4 scale (water in region, runoff, etc)
-## 4) atmospheric deposition at huc 4 scale
-## 5) topography at the huc 4 scale
-## 6) model parameters: number of lakes, mean concentration in region
 
-## get list of 2913 unique lakes that have nutrient data
+# get list of 2913 unique lakes that have nutrient data
 setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Publication")
 lakes = read.csv("LAGOS_summer_meanvals.csv", header = TRUE)
 lakes = unique(lakes$lagoslakeid)
 
-##############################################
+##########################
 ## import lake-scale data
-##############################################
+##########################
 
 #############
-## import lake-specific data (e.g., depth, area, etc)
+# import lake-specific data (e.g., depth, area, etc)
 
 setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
 all.lakes = read.table("lagos_lakes_10541.txt", 
@@ -46,7 +37,6 @@ lakes = subset(all.lakes, all.lakes$lagoslakeid %in% lakes)
 
 ###########
 ## import watershed-scale land use/land cover data
-setwd("~/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
 setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
 
 # landuse/land cover data calculated at the watershed scale
@@ -63,15 +53,33 @@ iws.lulc$iws_forest = iws.lulc$iws_nlcd2001_pct_41 + iws.lulc$iws_nlcd2001_pct_4
 # reduce variables down to 2001 LULC data
 # also include topography metrics to test
 
-iws.lulc = iws.lulc[,c(1,8,146,149,155,156,159:162)]
+iws.lulc = iws.lulc[,c(149,155,156,159:162)]
 
 # rename ID var to allow merge with lake.info
 
-names(iws.lulc)[6] = "lagoslakeid" 
+names(iws.lulc)[3] = "lagoslakeid" 
 
 # filter IWS to lakes in time series analysis
 
 geo.data = merge(lakes, iws.lulc, by = "lagoslakeid", all.x = TRUE)
+
+################################
+## find lakes that are missing lake depth data, and merge with predicted data from Oliver et al 2016
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_lake depth/R Output")
+setwd("~/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_lake depth/R Output")
+pred.depths = read.table("lake_depth_data.txt", header = TRUE)
+
+missing.depth = lake.predictors$lagoslakeid[is.na(lake.predictors$maxdepth)]
+filled.depths = pred.depths[pred.depths$lagoslakeid %in% missing.depth, ]
+filled.depths = filled.depths[,c(1,8)]
+names(filled.depths)[2] = "maxdepth"
+
+lake.predictors$maxdepth[lake.predictors$lagoslakeid %in% filled.depths$lagoslakeid]
+
+lake.predictors$maxdepth[lake.predictors$lagoslakeid %in% filled.depths$lagoslakeid] = filled.depths$maxdepth
+
+lake.predictors = merge(lake.predictors, lake.info[,c("lagoslakeid", "lagosname1")], by = "lagoslakeid", all.x = TRUE)
+
 
 #################
 # import watershed-scale connectivity metrics
@@ -84,8 +92,17 @@ names(iws.conn)[7] = "lagoslakeid"
 
 geo.data = merge(geo.data, iws.conn, by = "lagoslakeid", all.x = TRUE)
 
+################
+# import watershed area
+setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
+iws = read.table("iws.txt", header = TRUE)
+iws = iws[,c(12,2)]
+names(iws)[1] = "lagoslakeid"
+
+geo.data = merge(geo.data, iws, by = "lagoslakeid", all.x = TRUE)
+
 ###################################
-## import huc 4-scale data
+## import region (huc 4-scale) data
 ###################################
 
 setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
@@ -172,6 +189,7 @@ hu4.conn = hu4.conn[,c(1,4,7,12,27,79)]
 
 geo.data = merge(geo.data, hu4.conn, by = "hu4_zoneid", all.x = TRUE)
 
+#################################
 # import land use/land cover data
 hu4.lulc = read.table("hu4_lulc.txt", header = TRUE)
 hu4.lulc$hu4_urban = hu4.lulc$hu4_nlcd2001_pct_22 + hu4.lulc$hu4_nlcd2001_pct_23 + hu4.lulc$hu4_nlcd2001_pct_24
@@ -182,3 +200,4 @@ hu4.lulc$hu4_forest = hu4.lulc$hu4_nlcd2001_pct_41 + hu4.lulc$hu4_nlcd2001_pct_4
 hu4.lulc = hu4.lulc[,c(1,8,158,161,167:170)]
 
 geo.data = merge(geo.data, hu4.lulc, by = "hu4_zoneid", all.x = TRUE)
+
