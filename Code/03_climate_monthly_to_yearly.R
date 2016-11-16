@@ -1,11 +1,9 @@
-## code to convert monthly climate variables into yearly climate variables
-## code can also convert monthly climate vars to seasonal climate vars
+# code to convert monthly climate variables into 
+# yearly climate variables accounting for days per month
+# as well as leap years
 
-setwd("C:/Users/Samantha/Dropbox/GEO-Shared2/GeoBulkReLoad/Z_MISC-folders/zz-files from Nicole/PRISM monthly 06-26-2014")
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
 
-# convert monthly vals to annual vals
-# note that this code accounts for number of days per month 
-# and leap years
 climate.month.to.year <- function(variable, scale) {
 temp = read.table(paste(scale, "_", variable, "_merge.txt", sep = ""), header = TRUE)
   for (i in 1:nrow(temp)){
@@ -79,4 +77,7 @@ climate.month.to.season <- function(variable, scale) {
 
 hu4.tmean.annual = climate.month.to.year("tmean", "HU4")
 hu4.ppt.annual = climate.month.to.year("ppt", "HU4")
-hu4.tmean.season = climate.month.to.season("tmean", "HU4")
+
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
+write.table(hu4.tmean.annual,"HU4_tmean_annual.txt")
+write.table(hu4.ppt.annual,"HU4_ppt_annual.txt")
