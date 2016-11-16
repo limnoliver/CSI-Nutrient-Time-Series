@@ -212,6 +212,7 @@ data.tntp = data.tntp[,c(1,2,3,5,6,7)]
 data.tn = data.tn[,-4]
 data.tp = data.tp[,-4]
 data.vert = rbind(data.tn, data.tp, data.tntp, data.chl)
+data.vert = data.vert[,c(1:3,6)]
 
 write.csv(data.vert, "LAGOS_summer_meanvals.csv", row.names = FALSE)
 
