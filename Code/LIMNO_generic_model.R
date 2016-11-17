@@ -211,6 +211,15 @@ change.db.chl = mod.resim(chl.3fr23, data.chl)
 
 plotREsim(change.db.chl[[3]][change.db.chl[[3]]$term=="sampleyear_cor",])
 
+# example of extracting coefficients from mixed model
+# e.g., what was done to get numbers for table 2
+
+change.db.tn[[4]][1,2] # tn intercept
+change.db.tn[[4]][1,2] # tn slope
+# calculate the number of lakes with tn trend < 0
+length(which(change.db.tn[[1]]$ymax[change.db.tn[[1]]$term == "sampleyear_cor"] < 0))
+
+# output file for figure generation
 
 ####################################
 ## random forest analysis ##
