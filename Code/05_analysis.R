@@ -1,16 +1,17 @@
 # load required packages
-# 
 library(lme4)
 library(RLRsim)
 library(merTools)
-
-
-library(MuMIn)
 library(arm)
-library(effects)
-require(maps)
 library(randomForest)
 
+# ===============================================
+# PURPOSE:
+# this code models nutrient (TN, TP, TN:TP) and chlorophyll 
+# change through time using 3-level hierarchical models
+# Additionally, to assess the drivers of nutrient and chlorophyll trends,
+# this code uses random forest to classify lakes as either
+# increasing, decreasing or not changing for each response variable
 # ================================================
 # Data import and cleaning
 
@@ -132,19 +133,19 @@ model.m0 <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (1|hu4_zoneid), data = data, REML=TRUE))
 }
 
-tn.m0 = model.m0(data.tn$tn_umol, data.tn)
+tn.m0 <- model.m0(data.tn$tn_umol, data.tn)
 tp.m0 <- model.m0(data.tp$tp_umol, data.tp)
 tntp.m0 <- model.m0(data.tntp$tn_tp_umol, data.tntp)
 chl.m0 <- model.m0(data.chl$chl_ugL, data.chl)
 
 # bootstrap model test
 
-tn.r3.test = exactRLRT(tn.m, tn.3fr23, tn.m0)
-tp.r3.test = exactRLRT(tp.m, tp.3fr23, tp.m0)
-tntp.r3.test = exactRLRT(tntp.m, tntp.3fr23, tntp.m0)
-chl.r3.test = exactRLRT(chl.m, chl.3fr23, chl.m0)
+tn.r3.test <- exactRLRT(tn.m, tn.3fr23, tn.m0)
+tp.r3.test <- exactRLRT(tp.m, tp.3fr23, tp.m0)
+tntp.r3.test <- exactRLRT(tntp.m, tntp.3fr23, tntp.m0)
+chl.r3.test <- exactRLRT(chl.m, chl.3fr23, chl.m0)
 
-## RESULTS: all time:region effects are significant
+# RESULTS: all time:region effects are significant
 
 # =====================================================
 # Extract fixed and random effects, as well as variance components,
@@ -221,13 +222,12 @@ length(which(change.db.tn[[1]]$ymax[change.db.tn[[1]]$term == "sampleyear_cor"] 
 
 # output file for figure generation
 
-####################################
-## random forest analysis ##
-####################################
+# ==============================================
+# random forest analysis 
 
-## This code uses the predictor variables located at: 
-## to predict whether a lake is increasing, decreasing, or not changing
-## in the four response variables (TN, TP, TN:TP, Chl)
+# This code uses the predictor variables located at: 
+# to predict whether a lake is increasing, decreasing, or not changing
+# in the four response variables (TN, TP, TN:TP, Chl)
 
 
 
