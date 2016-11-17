@@ -143,58 +143,43 @@ tp.test = rf.vsurf("tp", lake.predictors)
 chl.test = rf.vsurf("chl", lake.predictors)
 tntp.test = rf.vsurf("tntp", lake.predictors)
 
-# use VSURF outputs to show variable order
-# have to set response var and run code above
-
-tn.vars = pred.vars
-tp.vars = pred.vars
-tntp.vars = pred.vars
-chl.vars = pred.vars
-
-tn.var.keep = tn.vars[tn.test$varselect.interp]
-tp.var.keep = tp.vars[tp.test$varselect.interp]
-tntp.var.keep = tntp.vars[tntp.test$varselect.interp]
-chl.var.keep = chl.vars[chl.test$varselect.interp]
-
-
 
 # rerun RF models using variables selected
 
-rf.rerun.cat <- function(response, dat) {
+rf.rerun.cat <- function(vsurf.test, dat) {
 
-  #filter data frame to only response and predictors
-
-  vars.keep = grep(paste("^",response, "_change", sep = ""), names(dat))
-  filter.vars.keep = get(paste(response, ".var.keep", sep = ""))
-  filter.vars.keep = which(names(dat) %in% filter.vars.keep)
-  dat.keep = dat[,c(filter.vars.keep, vars.keep)]
+  # filter data frame to only response 
+  # and predictors left after interpretation step of VSURF
+  
+  vars.keep = vsurf.test$var.names[vsurf.test$varselect.pred]
+  response = as.character(vsurf.test$terms[[2]])
+  dat.keep = dat[,c(response, vars.keep)]
 
   dat.keep = dat.keep[complete.cases(dat.keep), ]
 
-  pred.vars = names(dat.keep)[names(dat.keep) != paste(response, "_change", sep = "")]
-  response.var = paste(response, "_change", sep = "")
+  
+  rf.formula <- as.formula(paste(paste(response, "~"), paste(vars.keep, collapse= "+")))
 
-  rf.formula <- as.formula(paste(paste(response.var, "~"), paste(pred.vars, collapse= "+")))
-
-  n.min = min(summary(dat.keep[,length(dat.keep)]))
-  rf<-randomForest(rf.formula,data=dat.keep,na.action=na.omit,importance=1, ntree=2000,
-                   strata = dat.keep[,length(dat.keep)],
+  n.min = min(summary(dat.keep[,1]))
+  rf<-randomForest(rf.formula,data=dat.keep,na.action=na.omit,importance=1, ntree=5000,
+                   strata = dat.keep[,1],
                    sampsize = rep(n.min, 3))
   return(rf)
 }
 
-tn.rerun = rf.rerun.cat("tn", lake.predictors)
-tp.rerun = rf.rerun.cat("tp", lake.predictors)
-tntp.rerun = rf.rerun.cat("tntp", lake.predictors)
-chl.rerun = rf.rerun.cat("chl", lake.predictors)
+tn.rerun = rf.rerun.cat(tn.test, lake.predictors)
+tp.rerun = rf.rerun.cat(tp.test, lake.predictors)
+tntp.rerun = rf.rerun.cat(tntp.test, lake.predictors)
+chl.rerun = rf.rerun.cat(chl.test, lake.predictors)
 
 
 # put together a dataframe with top vars
 
-#tn.imp = data.frame(Response_Variable = "tn",
-#                    Predictor_Variable = row.names(varImpPlot(tn.rerun)),
-#                    Per_inc_MSE = (as.numeric(varImpPlot(tn.rerun)[,1])/max(as.numeric(varImpPlot(tn.rerun)[,1]))))
+tn.imp = data.frame(Response_Variable = "tn",
+                    Predictor_Variable = row.names(varImpPlot(tn.rerun)),
+                    Per_inc_MSE = (as.numeric(varImpPlot(tn.rerun)[,1])/max(as.numeric(varImpPlot(tn.rerun)[,1]))))
 
+tn.imp = tn.imp[order(tn.imp$Per_inc_MSE, decreasing = TRUE)[1:5], ]
 
 tp.imp = data.frame(Response_Variable = "tp",
                     Predictor_Variable = row.names(varImpPlot(tp.rerun)),
@@ -207,10 +192,10 @@ tntp.imp = data.frame(Response_Variable = "tntp",
 tntp.imp = tntp.imp[order(tntp.imp$Per_inc_MSE, decreasing = TRUE)[1:5], ]
 
 
-#chl.imp = data.frame(Response_Variable = "chl",
+chl.imp = data.frame(Response_Variable = "chl",
                      Predictor_Variable = row.names(varImpPlot(chl.rerun)),
                      Per_inc_MSE = (as.numeric(varImpPlot(chl.rerun)[,1])/max(as.numeric(varImpPlot(chl.rerun)[,1]))))
-#chl.imp = chl.imp[chl.imp$Predictor_Variable %in% chl.var.keep, ]
+chl.imp = chl.imp[order(chl.imp$Per_inc_MSE, decreasing = TRUE)[1:5], ]
 
 top.vars = rbind(tp.imp, tntp.imp)
 
