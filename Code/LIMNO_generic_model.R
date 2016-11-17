@@ -11,6 +11,9 @@ library(effects)
 require(maps)
 library(randomForest)
 
+# ================================================
+# Data import and cleaning
+
 # modify below code to source published LTER data
 # but for now, data will look like: 
 
@@ -49,9 +52,9 @@ names(data.tp)[3] = "tp_umol"
 names(data.tntp)[3] = "tn_tp_umol"
 names(data.chl)[3] = "chl_ugL"
 
-#################################
-## create hierarchical linear models
-#################################
+# =======================================
+# create hierarchical linear models
+
 # 3-level unconditional
 # used to generate results of Table S2
 
@@ -64,7 +67,8 @@ tp.3u = model.3u(data.tp$tp_umol, data.tp)
 tntp.3u = model.3u(data.tntp$tn_tp_umol, data.tntp)
 chl.3u = model.3u(data.chl$chl_ugL, data.chl)
 
-#3-level, random intercepts + fixed year effect + random year:region + random year:lake
+# 3-level, random intercepts + fixed year effect + random year:region + random year:lake
+# Main model used throughout paper to detect trends in nutrients and chl
 
 model.3fr23 <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4_zoneid), data = data, REML=TRUE))
@@ -75,16 +79,14 @@ tp.3fr23 = model.3fr23(data.tp$tp_umol, data.tp)
 tntp.3fr23 = model.3fr23(data.tntp$tn_tp_umol, data.tntp)
 chl.3fr23 = model.3fr23(data.chl$chl_ugL, data.chl)
 
-################################################
-## test whether random effects should be included
-################################################
+# ===================================================
+# test if random effects are appropriate
 
-## TEST: first test time:lagoslakeid
-## full model nutrient ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4_zoneid)
+# TEST: first test year|lagoslakeid
 
-## m = only random effect you want to test
-## mA = full model
-## m0 = all random except one you want to test
+# m = only random effect you want to test
+# mA = full model
+# m0 = all random except one you want to test
 
 model.m <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (0+sampleyear_cor|lagoslakeid), data = data, REML=TRUE))
@@ -104,16 +106,18 @@ tp.m0 <- model.m0(data.tp$tp_umol, data.tp)
 tntp.m0 <- model.m0(data.tntp$tn_tp_umol, data.tntp)
 chl.m0 <- model.m0(data.chl$chl_ugL, data.chl)
 
-## bootstrap model test
+# bootstrap model test
+# full model refers to '3fr23' models created above
+# that include random effects at lake and region level
 
 tn.r2.test = exactRLRT(tn.m, tn.3fr23, tn.m0)
 tp.r2.test = exactRLRT(tp.m, tp.3fr23, tp.m0)
 tntp.r2.test = exactRLRT(tntp.m, tntp.3fr23, tntp.m0)
 chl.r2.test = exactRLRT(chl.m, chl.3fr23, chl.m0)
 
-## RESULTS: in all models, the random effect time:lake is significant
+# RESULTS: in all models, the random effect time:lake is significant
 
-## TEST: whether time|region should be included as a random effect
+# TEST2: whether year|region should be included as a random effect
 
 model.m <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (0+sampleyear_cor|hu4_zoneid), data = data, REML=TRUE))
@@ -142,15 +146,17 @@ chl.r3.test = exactRLRT(chl.m, chl.3fr23, chl.m0)
 
 ## RESULTS: all time:region effects are significant
 
-## Extract fixed and random effects, as well as variance components,
-## from simulations that allow calculation of variance for each parameter
+# =====================================================
+# Extract fixed and random effects, as well as variance components,
+# from posterior simulations. Use simulartions to estimate uncertainty around
+# fixed and random coefficients
 
 mod.resim <- function(mod, dat) {
   
-  ran = REsim(mod,n.sims=1000)
-  fix = FEsim(mod,n.sims=1000)
-  lake.ran = subset(ran, groupFctr=="lagoslakeid")
-  region.ran = subset(ran, groupFctr=="hu4_zoneid")
+  ran = REsim(mod,n.sims=1000) # simulate random effects
+  fix = FEsim(mod,n.sims=1000) # simulate fixed effects
+  lake.ran = subset(ran, groupFctr=="lagoslakeid") # extract lake-level random effects
+  region.ran = subset(ran, groupFctr=="hu4_zoneid") # extract region-level random effects
   names(lake.ran)[2] = "lagoslakeid"
   names(region.ran)[c(2)] = "hu4_zoneid"
   region.ran = region.ran[,c(2:6)]
@@ -159,10 +165,15 @@ mod.resim <- function(mod, dat) {
   lake.ran = merge(lake.ran, lake.regions)
   lake.ran = merge(lake.ran, region.ran, by = c("hu4_zoneid", "term"), all.x = TRUE)
   
-  #calculate lake-specific intercept and slope that includes fixed and random (lake and region) effects
-  lake.ran$coef_mean[lake.ran$term=="(Intercept)"] = lake.ran$mean[lake.ran$term=="(Intercept)"] + lake.ran$hu4_mean[lake.ran$term=="(Intercept)"] + fix$mean[1]
+  # calculate lake-specific intercept and slope that includes fixed and random (lake and region) effects
+  # this means adding the random lake and region effect to the fixed effect
+  lake.ran$coef_mean[lake.ran$term=="(Intercept)"] = lake.ran$mean[lake.ran$term=="(Intercept)"] + 
+                                                     lake.ran$hu4_mean[lake.ran$term=="(Intercept)"] + 
+                                                     fix$mean[1]
   lake.ran$coef_mean[lake.ran$term=="sampleyear_cor"] = lake.ran$mean[lake.ran$term=="sampleyear_cor"] + lake.ran$hu4_mean[lake.ran$term=="sampleyear_cor"] + fix$mean[2]
-  #calculate lake-specific sd of random effects that includes sd of fixed and random effects
+  
+  # calculate sd of lake-specific intercept and slope
+  # must square sd of individual effects, sum, and then take square root
   lake.ran$coef_sd[lake.ran$term=="(Intercept)"] = sqrt((lake.ran$sd[lake.ran$term=="(Intercept)"])^2 + (lake.ran$hu4_sd[lake.ran$term=="(Intercept)"])^2 + (fix$sd[1])^2)
   lake.ran$coef_sd[lake.ran$term=="sampleyear_cor"] = sqrt((lake.ran$sd[lake.ran$term=="sampleyear_cor"])^2 + (lake.ran$hu4_sd[lake.ran$term=="sampleyear_cor"])^2 + (fix$sd[2])^2)
   
@@ -184,6 +195,7 @@ mod.resim <- function(mod, dat) {
   return(list(lake.ran, region.ran, ran, fix))
 }
 
+# returned list is comparised of: 
 # 1 = lake-specific random effects
 # 2 = region-specific random effects
 # 3 = random effects
@@ -194,7 +206,7 @@ change.db.tp = mod.resim(tp.3fr23, data.tp)
 change.db.tntp = mod.resim(tntp.3fr23, data.tntp)       
 change.db.chl = mod.resim(chl.3fr23, data.chl)
 
-# plotting data from mod.resim
+# example of plotting data from mod.resim
 # look at random effects:
 
 plotREsim(change.db.chl[[3]][change.db.chl[[3]]$term=="sampleyear_cor",])
