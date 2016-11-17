@@ -52,6 +52,7 @@ rf.run.cat <- function(response, dat) {
                    sampsize = rep(n.min, 3)) # gives min group size for weighting
   return(rf)
 }
+
 rf.run.cat.lake <- function(response, dat) {
 
   #filter data frame to only response and predictors
@@ -197,78 +198,4 @@ chl.imp = data.frame(Response_Variable = "chl",
                      Per_inc_MSE = (as.numeric(varImpPlot(chl.rerun)[,1])/max(as.numeric(varImpPlot(chl.rerun)[,1]))))
 chl.imp = chl.imp[order(chl.imp$Per_inc_MSE, decreasing = TRUE)[1:5], ]
 
-top.vars = rbind(tp.imp, tntp.imp)
 
-#add tn and chl manually because they only had one
-#variable after variable selection, and varImpPlot is
-#not produced with only one var
-
-top.vars$Response_Variable = as.character(top.vars$Response_Variable)
-top.vars[11,] = c("tn", "hu4_dep_totaln_1990_mean", 1)
-top.vars[12,] = c("chl", chl.var.keep, 1)
-top.vars$Response_Variable = as.factor(top.vars$Response_Variable)
-
-top.vars$Response_fullname = c(rep("TP Change", 5),rep("TN:TP Change", 5), "TN Change", "Chl Change")
-top.vars$Predictor_fullname = c("WS % Crop",
-                                "HUC4 Dam Density",
-                                "HUC4 TN Deposition 2010",
-                                "HUC4 Runoff",
-                                "HUC4 % Pasture",
-                                "HUC4 Road Density",
-                                "WS Slope",
-                                "Maximum Lake Depth",
-                                "HU4 Mean Temperature",
-                                "HUC4 TN Deposition Diff",
-                                "HUC4 TN Deposition 1990",
-                                "HUC4 Mean Temperature")
-
-# change order of top.vars to reflect how I want them plotted
-
-
-########## extra code
-
-
-ggplot(top.vars, aes(x=Predictor_Variable, y=Per_inc_MSE, fill=Response_Variable)) +
-  geom_bar(stat="identity", position=position_dodge()) +
-  coord_flip() +
-  theme(axis.line = element_line(colour = "black"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        text = element_text(family="Helvetica")) +
-  scale_fill_grey(start = 0.8, end = .1)
-
-
-save.image("C:/Users/Samantha/Dropbox/Time series/19AUG16.RData")
-
-
-## rerun chl RF to include TN and TP
-
-rf.run.cat.chl <- function(response, dat) {
-
-  #filter data frame to only response and predictors
-
-  vars.keep = grep(paste("^",response, "_change", sep = ""), names(dat))
-
-  dat.keep = dat[,c(3,6,17:21,23:26,40:51,53:64,69:75, vars.keep)]
-
-  dat.keep = dat.keep[complete.cases(dat.keep), ]
-
-  pred.vars = names(dat.keep)[names(dat.keep) != paste(response, "_change", sep = "")]
-  response.var = paste(response, "_change", sep = "")
-
-  rf.formula <- as.formula(paste(paste(response.var, "~"), paste(pred.vars, collapse= "+")))
-
-  n.min = min(summary(dat.keep[,length(dat.keep)]))
-  rf<-randomForest(rf.formula,data=dat.keep,na.action=na.omit,importance=1, ntree=2000,
-                   strata = dat.keep[,length(dat.keep)],
-                   sampsize = rep(n.min, 3))
-  return(rf)
-}
-
-chl.all.dat = lake.predictors[!is.na(lake.predictors$tn_coef_mean)&!is.na(lake.predictors$tp_coef_mean)&!is.na(lake.predictors$chl_coef_mean), ]
-chl.all = rf.run.cat.chl("chl", chl.all.dat)
-chl.test = VSURF(rf.formula, data=dat.keep,na.action=na.omit,
-                 strata = dat.keep[,length(dat.keep)],
-                 sampsize = rep(n.min, 3))
