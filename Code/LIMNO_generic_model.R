@@ -44,6 +44,11 @@ data.tp = merge(data.tp, lake.info[,c("lagoslakeid", "hu4_zoneid")])
 data.tntp = merge(data.tntp, lake.info[,c("lagoslakeid", "hu4_zoneid")])
 data.chl = merge(data.chl, lake.info[,c("lagoslakeid", "hu4_zoneid")])
 
+names(data.tn)[3] = "tn_umol"
+names(data.tp)[3] = "tp_umol"
+names(data.tntp)[3] = "tn_tp_umol"
+names(data.chl)[3] = "chl_ugL"
+
 #################################
 ## create hierarchical linear models
 #################################
@@ -88,7 +93,7 @@ model.m <- function(nutrient, data) {
 tn.m <- model.m(data.tn$tn_umol, data.tn)
 tp.m <- model.m(data.tp$tp_umol, data.tp)
 tntp.m <- model.m(data.tntp$tn_tp_umol, data.tntp)
-chl.m <- model.m(data.chl$chl, data.chl)
+chl.m <- model.m(data.chl$chl_ugL, data.chl)
 
 model.m0 <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (1|lagoslakeid) + (sampleyear_cor||hu4_zoneid), data = data, REML=TRUE))
@@ -97,7 +102,7 @@ model.m0 <- function(nutrient, data) {
 tn.m0 = model.m0(data.tn$tn_umol, data.tn)
 tp.m0 <- model.m0(data.tp$tp_umol, data.tp)
 tntp.m0 <- model.m0(data.tntp$tn_tp_umol, data.tntp)
-chl.m0 <- model.m0(data.chl$chl, data.chl)
+chl.m0 <- model.m0(data.chl$chl_ugL, data.chl)
 
 ## bootstrap model test
 
@@ -117,7 +122,7 @@ model.m <- function(nutrient, data) {
 tn.m <- model.m(data.tn$tn_umol, data.tn)
 tp.m <- model.m(data.tp$tp_umol, data.tp)
 tntp.m <- model.m(data.tntp$tn_tp_umol, data.tntp)
-chl.m <- model.m(data.chl$chl, data.chl)
+chl.m <- model.m(data.chl$chl_ugL, data.chl)
 
 model.m0 <- function(nutrient, data) {
   return(lmer(log(nutrient) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (1|hu4_zoneid), data = data, REML=TRUE))
@@ -126,7 +131,7 @@ model.m0 <- function(nutrient, data) {
 tn.m0 = model.m0(data.tn$tn_umol, data.tn)
 tp.m0 <- model.m0(data.tp$tp_umol, data.tp)
 tntp.m0 <- model.m0(data.tntp$tn_tp_umol, data.tntp)
-chl.m0 <- model.m0(data.chl$chl, data.chl)
+chl.m0 <- model.m0(data.chl$chl_ugL, data.chl)
 
 # bootstrap model test
 
