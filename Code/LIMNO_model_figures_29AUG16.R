@@ -68,27 +68,7 @@ change.db.tp = merge(change.db.tp, tp.slopes.07[,c(2,3)], by = "lagoslakeid", al
 change.db.tn = merge(change.db.tn, tn.slopes.07[,c(2,3)], by = "lagoslakeid", all.x = TRUE)
 
 
-## create dataframe with all lake slopes (TP, TN, CHL, TNTP)
 
-temp.tn = change.db.tn[[1]][,c(2,3,11,13,14)]
-names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
-
-temp.tp = change.db.tp[[1]][,c(2,3,11,13,14)]
-names(temp.tp)[3:5] = c("tp_coef_mean", "tp_ymin", "tp_ymax")
-
-temp.tntp = change.db.tntp[[1]][,c(2,3,11,13,14)]
-names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
-
-temp.chl = change.db.chl[[1]][,c(2,3,11,13,14)]
-names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
-
-change.db.all = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(2:5)], temp.tp[temp.tp$term=="sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
-change.db.all = merge(change.db.all, temp.chl[temp.chl$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
-change.db.all = merge(change.db.all, temp.tntp[temp.tntp$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
-
-setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
-
-write.table(change.db.all, "lmer_change_db.txt")
 
 ## create dataframe with all region slopes (TP, TN, CHL, TNTP)
 
