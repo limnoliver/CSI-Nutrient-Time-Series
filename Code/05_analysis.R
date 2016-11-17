@@ -221,6 +221,50 @@ change.db.tn[[4]][1,2] # tn slope
 length(which(change.db.tn[[1]]$ymax[change.db.tn[[1]]$term == "sampleyear_cor"] < 0))
 
 # output file for figure generation
+# should be all lakes with lagoslakeid
+# columns should be mean for each nutrient
+# and column designating change
+
+# create dataframe with all lake slopes (TP, TN, CHL, TNTP)
+
+temp.tn = change.db.tn[[1]][,c(2,3,11,13,14)]
+names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
+
+temp.tp = change.db.tp[[1]][,c(2,3,11,13,14)]
+names(temp.tp)[3:5] = c("tp_coef_mean", "tp_ymin", "tp_ymax")
+
+temp.tntp = change.db.tntp[[1]][,c(2,3,11,13,14)]
+names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
+
+temp.chl = change.db.chl[[1]][,c(2,3,11,13,14)]
+names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
+
+change.db.all = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(2:5)], temp.tp[temp.tp$term=="sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
+change.db.all = merge(change.db.all, temp.chl[temp.chl$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
+change.db.all = merge(change.db.all, temp.tntp[temp.tntp$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
+
+# generate categorical response from ymin and ymax values
+change.db.all$tn_change[!is.na(change.db.all$tn_coef)] = "no change"
+change.db.all$tn_change[change.db.all$tn_ymax<0] = "decreasing"
+change.db.all$tn_change[change.db.all$tn_ymin>0] = "increasing"
+change.db.all$tn_change = as.factor(change.db.all$tn_change)
+
+change.db.all$tp_change[!is.na(change.db.all$tp_coef)] = "no change"
+change.db.all$tp_change[change.db.all$tp_ymax<0] = "decreasing"
+change.db.all$tp_change[change.db.all$tp_ymin>0] = "increasing"
+change.db.all$tp_change = as.factor(change.db.all$tp_change)
+
+change.db.all$tntp_change[!is.na(change.db.all$tntp_coef)] = "no change"
+change.db.all$tntp_change[change.db.all$tntp_ymax<0] = "decreasing"
+change.db.all$tntp_change[change.db.all$tntp_ymin>0] = "increasing"
+change.db.all$tntp_change = as.factor(change.db.all$tntp_change)
+
+change.db.all$chl_change[!is.na(change.db.all$chl_coef)] = "no change"
+change.db.all$chl_change[change.db.all$chl_ymax<0] = "decreasing"
+change.db.all$chl_change[change.db.all$chl_ymin>0] = "increasing"
+change.db.all$chl_change = as.factor(change.db.all$chl_change)
+
+write.table(change.db.all, "lmer_change_db.txt")
 
 # ==============================================
 # random forest analysis 
@@ -228,6 +272,16 @@ length(which(change.db.tn[[1]]$ymax[change.db.tn[[1]]$term == "sampleyear_cor"] 
 # This code uses the predictor variables located at: 
 # to predict whether a lake is increasing, decreasing, or not changing
 # in the four response variables (TN, TP, TN:TP, Chl)
+
+remove(list = ls())
+# source above code and read in lake-specific trends
+
+
+# get geo predictor data
+# change to LTER data source when posted, for now:
+
+lake.predictors = read.csv("LAGOS_supporting_geophysical.csv", header = TRUE)
+head(lake.predictors)
 
 
 
