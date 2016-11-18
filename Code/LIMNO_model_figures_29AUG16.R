@@ -5,7 +5,6 @@ require(maps)
 install.packages("mapproj")
 library(mapproj)
 library(ggplot2)
-library(RColorBrewer)
 
 # set colors for tn and tp
 
@@ -186,7 +185,7 @@ pdf("TN_directional_change.pdf")
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
                                   "Indiana","Michigan","Ohio", "Pennsylvania","New York",
                                   "New Jersey", "Connecticut","Rhode Island","Massachusetts",
-                                  "Vermont", "New Hampshire","Maine"), fill = TRUE, col = "lightgray", add = TRUE)
+                                  "Vermont", "New Hampshire","Maine"), fill = TRUE, col = "lightgray")
 
 #first plot points where TN is different from zero
 points(change.db.tn$nhd_long[change.db.tn$tn.change=="no change"], change.db.tn$nhd_lat[change.db.tn$tn.change=="no change"], 
