@@ -259,7 +259,7 @@ change.db.all$chl_change[change.db.all$chl_ymax<0] = "decreasing"
 change.db.all$chl_change[change.db.all$chl_ymin>0] = "increasing"
 change.db.all$chl_change = as.factor(change.db.all$chl_change)
 
-write.table(change.db.lakes, "lmer_change_db.txt")
+write.table(change.db.all, "lmer_change_db.txt")
 
 # create dataframe with all region slopes (TP, TN, CHL, TNTP)
 # for fig generation
