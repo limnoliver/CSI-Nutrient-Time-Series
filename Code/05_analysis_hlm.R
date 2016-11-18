@@ -220,13 +220,8 @@ change.db.tn[[4]][1,2] # tn slope
 # calculate the number of lakes with tn trend < 0
 length(which(change.db.tn[[1]]$ymax[change.db.tn[[1]]$term == "sampleyear_cor"] < 0))
 
-# output file for figure generation
-# should be all lakes with lagoslakeid
-# columns should be mean for each nutrient
-# and column designating change
-
 # create dataframe with all lake slopes (TP, TN, CHL, TNTP)
-
+# for fig generation
 temp.tn = change.db.tn[[1]][,c(2,3,11,13,14)]
 names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
 
@@ -264,8 +259,27 @@ change.db.all$chl_change[change.db.all$chl_ymax<0] = "decreasing"
 change.db.all$chl_change[change.db.all$chl_ymin>0] = "increasing"
 change.db.all$chl_change = as.factor(change.db.all$chl_change)
 
-write.table(change.db.all, "lmer_change_db.txt")
+write.table(change.db.lakes, "lmer_change_db.txt")
 
+# create dataframe with all region slopes (TP, TN, CHL, TNTP)
+# for fig generation
+
+temp.tn = change.db.tn[[2]][,c(1,2,6,8,9)]
+names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
+
+temp.tp = change.db.tp[[2]][,c(1,2,6,8,9)]
+names(temp.tp)[3:5] = c("tp_coef_mean", "tp_ymin", "tp_ymax")
+
+temp.chl = change.db.chl[[2]][,c(1,2,6,8,9)]
+names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
+
+temp.tntp = change.db.tntp[[2]][,c(1,2,6,8,9)]
+names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
+
+change.db.region = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(1,3,4,5)], temp.tp[temp.tp$term=="sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
+change.db.region = merge(change.db.region, temp.chl[temp.chl$term == "sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
+
+change.db.region = merge(change.db.region, temp.tntp[temp.tntp$term == "sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
 
 
 
