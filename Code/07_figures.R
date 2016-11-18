@@ -5,8 +5,18 @@ require(maps)
 install.packages("mapproj")
 library(mapproj)
 
-# set colors for tn and tp
+# ============================
+# Setup
 
+# import data - source from LTER wesbite. For now, use:
+source("06_analysis_rf.R")
+# will use change.db.all + lake.predictors
+
+setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
+lake.predictors = read.csv("LAGOS_supporting_geophysical.csv", header = TRUE)
+change.db.all = merge(change.db.all, lake.predictors[,c(1,4,5)], by = "lagoslakeid", all.x = TRUE)
+
+# set colors for tn and tp
 col.tn = rgb(.94,.73,0.035,.7)
 col.tp = rgb(.07,.57,.45,0.7)
 col.both = rgb(68/255, 36/255,0, 0.7)
@@ -16,118 +26,8 @@ col.no.change = "darkgray"
 n.tn = 833
 n.tp = 2096
 n.tntp = 742
-n.chl = 2143
+n.chl = 2239
 
-setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSData/Version1.054.1")
-data.lake.specific = read.table("lagos_lakes_10541.txt", 
-                                header = TRUE, 
-                                sep = "\t", 
-                                quote = "", 
-                                dec = ".", 
-                                strip.white = TRUE,
-                                comment.char = "")
-
-lake.info = data.lake.specific[,c("lagoslakeid", "nhd_lat", "nhd_long")]
-
-
-
-## calculate probability of change > or < 0 for each lake
-## create histograms of probability of change
-change.db.tp$tp.slopes.z = change.db.tp$tp.slopes/change.db.tp$tp.slopes.sd
-change.db.tp$tp.slopes.p = (1-2*pnorm(-abs(change.db.tp$tp.slopes.z)))*(change.db.tp$tp.slopes/(abs(change.db.tp$tp.slopes)))
-
-change.db.tn$tn.slopes.z = change.db.tn$tn.slopes/change.db.tn$tn.slopes.sd
-change.db.tn$tn.slopes.p = (1-2*pnorm(-abs(change.db.tn$tn.slopes.z)))*(change.db.tn$tn.slopes/(abs(change.db.tn$tn.slopes)))
-
-
-## merge change dbs with slopes calculated post 2006
-
-change.db.tp = merge(change.db.tp, tp.slopes.07[,c(2,3)], by = "lagoslakeid", all.x = TRUE)
-change.db.tn = merge(change.db.tn, tn.slopes.07[,c(2,3)], by = "lagoslakeid", all.x = TRUE)
-
-
-## create dataframe with all lake slopes (TP, TN, CHL, TNTP)
-
-temp.tn = change.db.tn[[1]][,c(2,3,11,13,14)]
-names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
-
-temp.tp = change.db.tp[[1]][,c(2,3,11,13,14)]
-names(temp.tp)[3:5] = c("tp_coef_mean", "tp_ymin", "tp_ymax")
-
-temp.tntp = change.db.tntp[[1]][,c(2,3,11,13,14)]
-names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
-
-temp.chl = change.db.chl[[1]][,c(2,3,11,13,14)]
-names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
-
-change.db.all = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(2:5)], temp.tp[temp.tp$term=="sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
-change.db.all = merge(change.db.all, temp.chl[temp.chl$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
-change.db.all = merge(change.db.all, temp.tntp[temp.tntp$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
-
-setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
-
-write.table(change.db.all, "lmer_change_db.txt")
-
-## create dataframe with all region slopes (TP, TN, CHL, TNTP)
-
-temp.tn = change.db.tn[[2]][,c(1,2,6,8,9)]
-names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
-
-temp.tp = change.db.tp[[2]][,c(1,2,6,8,9)]
-names(temp.tp)[3:5] = c("tp_coef_mean", "tp_ymin", "tp_ymax")
-
-temp.chl = change.db.chl[[2]][,c(1,2,6,8,9)]
-names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
-
-temp.tntp = change.db.tntp[[2]][,c(1,2,6,8,9)]
-names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
-
-change.db.region = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(1,3,4,5)], temp.tp[temp.tp$term=="sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
-change.db.region = merge(change.db.region, temp.chl[temp.chl$term == "sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
-
-change.db.region = merge(change.db.region, temp.tntp[temp.tntp$term == "sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
-
-
-setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
-
-write.table(change.db.region, "lmer_change_db_region.txt")
-
-# create change.db but this time with BLUPs (not combined coefficients)
-# so that lake and region BLUPs can be used in the random forest analysis
-
-temp.tn = change.db.tn[[1]][,c(2,3,5)]
-names(temp.tn)[3] = "tn_blup"
-
-temp.tp = change.db.tp[[1]][,c(2,3,5)]
-names(temp.tp)[3] = "tp_blup"
-
-temp.tntp = change.db.tntp[[1]][,c(2,3,5)]
-names(temp.tntp)[3] = "tntp_blup"
-
-temp.chl = change.db.chl[[1]][,c(2,3,5)]
-names(temp.chl)[3] = "chl_blup"
-
-lake.blups = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(2:3)], temp.tp[temp.tp$term=="sampleyear_cor",c(2:3)], by = "lagoslakeid", all = TRUE)
-lake.blups = merge(lake.blups, temp.chl[temp.chl$term == "sampleyear_cor",c(2:3)], by = "lagoslakeid", all = TRUE)
-lake.blups = merge(lake.blups, temp.tntp[temp.tntp$term == "sampleyear_cor",c(2:3)], by = "lagoslakeid", all = TRUE)
-
-# create the same dataframe for regions
-
-temp.tn = change.db.tn[[2]][,c(1:3)]
-names(temp.tn)[3] = "tn_blup"
-
-temp.tp = change.db.tp[[2]][,c(1:3)]
-names(temp.tp)[3] = "tp_blup"
-
-temp.tntp = change.db.tntp[[2]][,c(1:3)]
-names(temp.tntp)[3] = "tntp_blup"
-
-temp.chl = change.db.chl[[2]][,c(1:3)]
-names(temp.chl)[3] = "chl_blup"
-
-region.blups = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(1,3)], temp.tp[temp.tp$term=="sampleyear_cor",c(1,3)], by = "hu4_zoneid", all = TRUE)
-region.blups = merge(region.blups, temp.chl[temp.chl$term == "sampleyear_cor",c(1,3)], by = "hu4_zoneid", all = TRUE)
-region.blups = merge(region.blups, temp.tntp[temp.tntp$term == "sampleyear_cor",c(1,3)], by = "hu4_zoneid", all = TRUE)
 
 
 #################################################
@@ -138,19 +38,19 @@ newmap <- getMap(resolution = "high")
 plot(newmap, xlim = c(-98, -66), ylim = c(34, 50), asp = 1)
 
 pdf("TN_directional_change.pdf")
-
+temp = change.db.all[!is.na(change.db.all$tn_change), ]
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
                                   "Indiana","Michigan","Ohio", "Pennsylvania","New York",
                                   "New Jersey", "Connecticut","Rhode Island","Massachusetts",
-                                  "Vermont", "New Hampshire","Maine"), fill = TRUE, col = "lightgray", add = TRUE)
+                                  "Vermont", "New Hampshire","Maine"), fill = TRUE, col = "lightgray")
 
 #first plot points where TN is different from zero
-points(change.db.tn$nhd_long[change.db.tn$tn.change=="no change"], change.db.tn$nhd_lat[change.db.tn$tn.change=="no change"], 
+points(temp$long[temp$tn_change=="no change"], temp$lat[temp$tn_change=="no change"], 
        cex=0.7, col = col.no.change, pch = 16)
 
-points(change.db.tn$nhd_long[change.db.tn$tn.change=="positive"], change.db.tn$nhd_lat[change.db.tn$tn.change=="positive"],
+points(temp$long[temp$tn_change=="increasing"], temp$lat[temp$tn_change=="increasing"],
        col = col.both, pch=16, cex=1.2)
-points(change.db.tn$nhd_long[change.db.tn$tn.change=="negative"], change.db.tn$nhd_lat[change.db.tn$tn.change=="negative"],
+points(temp$long[temp$tn_change=="decreasing"], temp$lat[temp$tn_change=="decreasing"],
        col = col.tn, pch=16,cex=1.2)
 legend(-83, 49.5, c("Increasing", "Decreasing", "No Change"), fill= c(col.both, col.tn, col.no.change))
 dev.off()
@@ -162,12 +62,12 @@ map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","
                                   "Vermont", "New Hampshire","Maine"), fill = TRUE, col = "lightgray")
 
 #first plot points where tp is different from zero
-points(change.db.tp$nhd_long[change.db.tp$tp.change=="no change"], change.db.tp$nhd_lat[change.db.tp$tp.change=="no change"], 
+points(change.db.tp$nhd_long[change.db.tp$tp_change=="no change"], change.db.tp$nhd_lat[change.db.tp$tp_change=="no change"], 
        cex=0.7, col = col.no.change, pch = 16)
 
-points(change.db.tp$nhd_long[change.db.tp$tp.change=="positive"], change.db.tp$nhd_lat[change.db.tp$tp.change=="positive"],
+points(change.db.tp$nhd_long[change.db.tp$tp_change=="increasing"], change.db.tp$nhd_lat[change.db.tp$tp_change=="increasing"],
        col = col.both, pch=16, cex=1.2)
-points(change.db.tp$nhd_long[change.db.tp$tp.change=="negative"], change.db.tp$nhd_lat[change.db.tp$tp.change=="negative"],
+points(change.db.tp$nhd_long[change.db.tp$tp_change=="decreasing"], change.db.tp$nhd_lat[change.db.tp$tp_change=="decreasing"],
        col = col.tp, pch=16,cex=1.2)
 legend(-83, 49.5, c("Increasing", "Decreasing", "No Change"), fill= c(col.both, col.tp, col.no.change))
 dev.off()
@@ -186,32 +86,32 @@ temp.tn = change.db.tn[change.db.tn$lagoslakeid %in% change.db.tp$lagoslakeid,]
 temp = merge(temp.tn, change.db.tp[,c(1,9)], by = "lagoslakeid", all.x = TRUE)
 
 #first plot points where there is no change
-points(temp$nhd_long[temp$tn.change=="no change" & temp$tp.change=="no change"], temp$nhd_lat[temp$tn.change=="no change" & temp$tp.change=="no change"], 
+points(temp$nhd_long[temp$tn_change=="no change" & temp$tp_change=="no change"], temp$nhd_lat[temp$tn_change=="no change" & temp$tp_change=="no change"], 
        cex=1.2, pch = 1, col = "darkgray")
 
 #plot lakes where tn is not changing, tp is going up
-points(temp$nhd_long[temp$tn.change=="no change" & temp$tp.change=="positive"], temp$nhd_lat[temp$tn.change=="no change" & temp$tp.change=="positive"], 
+points(temp$nhd_long[temp$tn_change=="no change" & temp$tp_change=="increasing"], temp$nhd_lat[temp$tn_change=="no change" & temp$tp_change=="increasing"], 
        cex=1.2, col = "black", pch=24, bg = col.tp)
 
 #plot lakes where tn is not changing, tp is going down
-points(temp$nhd_long[temp$tn.change=="no change" & temp$tp.change=="negative"], temp$nhd_lat[temp$tn.change=="no change" & temp$tp.change=="negative"], 
+points(temp$nhd_long[temp$tn_change=="no change" & temp$tp_change=="decreasing"], temp$nhd_lat[temp$tn_change=="no change" & temp$tp_change=="decreasing"], 
        cex=1.2, col = "black", pch=25, bg = col.tp)
 
 #plot lakes where tn is going up, no change in tp
-points(temp$nhd_long[temp$tn.change=="positive" & temp$tp.change=="no change"], temp$nhd_lat[temp$tn.change=="positive" & temp$tp.change=="no change"], 
+points(temp$nhd_long[temp$tn_change=="increasing" & temp$tp_change=="no change"], temp$nhd_lat[temp$tn_change=="increasing" & temp$tp_change=="no change"], 
        cex=1.2, col = "black", pch=24, bg = col.tn)
 
 #plot lakes where tn is going down, no change in tp
-points(temp$nhd_long[temp$tn.change=="negative" & temp$tp.change=="no change"], temp$nhd_lat[temp$tn.change=="negative" & temp$tp.change=="no change"], 
+points(temp$nhd_long[temp$tn_change=="decreasing" & temp$tp_change=="no change"], temp$nhd_lat[temp$tn_change=="decreasing" & temp$tp_change=="no change"], 
        cex=1.2, col = "black", pch=25, bg = col.tn)
 
 
 #plot lakes where both nutrients are going up
-points(temp$nhd_long[temp$tn.change=="positive" & temp$tp.change=="positive"], temp$nhd_lat[temp$tn.change=="positive" & temp$tp.change=="positive"], 
+points(temp$nhd_long[temp$tn_change=="increasing" & temp$tp_change=="increasing"], temp$nhd_lat[temp$tn_change=="increasing" & temp$tp_change=="increasing"], 
        cex=1.2, col = "black", pch=24, bg = col.both)
 
 #plot lakes where both nutrients are going down
-points(temp$nhd_long[temp$tn.change=="negative" & temp$tp.change=="negative"], temp$nhd_lat[temp$tn.change=="negative" & temp$tp.change=="negative"], 
+points(temp$nhd_long[temp$tn_change=="decreasing" & temp$tp_change=="decreasing"], temp$nhd_lat[temp$tn_change=="decreasing" & temp$tp_change=="decreasing"], 
        cex=1.2, col = "black", pch=24, bg = col.both)
 
 dev.off()
@@ -625,19 +525,17 @@ dev.off()
 
 # create plot of nutrients vs model parameters (n obs/lake, median year, etc)
 
-#########################
-## random forest results
-#########################
 
+# ==========================================
+# Figure 4
 # create violin plots of important predictors identified by the rf
-library(ggplot2)
+
 quant.low = function(x){
   quantile(x,.25)
 }
 quant.high = function(x){
   quantile(x,.75)
 }
-library(ggplot2)
 
 pdf("tntp_top_var2.pdf")
 #TP vs ppt change
@@ -657,14 +555,15 @@ ggplot(dat.keep, aes(x=tp_change, y=hu4_ppt_change, fill=tp_change)) +
   theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
 dev.off()
+
 #TN vs regional TN dep 1990
 dat.keep = lake.predictors[!is.na(lake.predictors$tn_change), ]
 ggplot(dat.keep, aes(x=tn_change, y=hu4_dep_totaln_1990_mean, fill=tn_change)) + 
   geom_violin()+
   theme_classic()+
-  stat_summary(fun.ymin = "tenth", 
+  stat_summary(fun.ymin = "quant.low", 
                fun.y = "median",
-               fun.ymax = "ninetieth",
+               fun.ymax = "quant.high",
                geom="pointrange", shape = 3) +
   scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
   labs(x="TN Change", y="Regional TN Deposition 1990")+
@@ -674,14 +573,14 @@ ggplot(dat.keep, aes(x=tn_change, y=hu4_dep_totaln_1990_mean, fill=tn_change)) +
   theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
 
-#TN:TP vs regional road density
+#TN:TP vs regional dep change
 dat.keep = lake.predictors[!is.na(lake.predictors$tntp_change), ]
 ggplot(dat.keep, aes(x=tntp_change, y=hu4_dep_change, fill=tntp_change)) + 
   geom_violin()+
   theme_classic()+
-  stat_summary(fun.ymin = "tenth", 
+  stat_summary(fun.ymin = "quant.low", 
                fun.y = "median",
-               fun.ymax = "ninetieth",
+               fun.ymax = "quant.high",
                geom="pointrange", shape = 3) +
   scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
   labs(x="TN:TP Change", y="Regional Deposition Change")+
@@ -696,9 +595,9 @@ dat.keep = lake.predictors[!is.na(lake.predictors$chl_change), ]
 ggplot(dat.keep, aes(x=chl_change, y=hu4_tmean_1990/100, fill=chl_change)) + 
   geom_violin()+
   theme_classic()+
-  stat_summary(fun.ymin = "tenth", 
+  stat_summary(fun.ymin = "quant.low", 
                fun.y = "median",
-               fun.ymax = "ninetieth",
+               fun.ymax = "quant.high",
                geom="pointrange", shape = 3) +
   scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
   labs(x="Chl Change", y="Regional Mean Temp. in 1990")+
