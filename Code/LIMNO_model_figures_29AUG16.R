@@ -22,7 +22,6 @@ n.tntp = 742
 n.chl = 2143
 
 
-
 # create dataframe of change values for post 2006 data
 n.tp.07 = 1671
 tp.slopes.07 = as.numeric(output_TP_07[c((n.tp.07+1):(2*n.tp.07)),1])
