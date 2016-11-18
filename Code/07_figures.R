@@ -1,7 +1,7 @@
 require(ggplot2)
 library(RColorBrewer)
+library(maps)
 
-require(maps)
 install.packages("mapproj")
 library(mapproj)
 
@@ -112,9 +112,10 @@ legend("bottomright", legend = c("TN Not Changing", "TN Increasing", "TN Decreas
 abline(0,1)
 dev.off()
 
-######################################################
-## create a map that plots regional random effects
-######################################################
+# =================================================
+# Figure 1
+# code that plots 8 maps: for each nutrient or chlorophyll response, 
+# plot the regional trend estimates and the lake-specific trend estimates.
 require(maps)
 require(maptools)
 require(rgdal)
@@ -124,6 +125,7 @@ library(colorspace)
 
 setwd("C:/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014")
 huc4 = readOGR(dsn ="/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014", layer = "HU4_simple_wgs1984")
+huc4 = readOGR(dsn = "/Users/skoliver/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014", layer = "HU4_simple_wgs1984")
 
 #function to extract regional random effects and add significance column for plotting
 map.data <- function(region.RE)  {
@@ -196,16 +198,16 @@ text(x=.5, y = .59, labels = "% Change Per Year", cex = 2.2)
 dev.off()
 
 pdf("all_blups.pdf")
+
+# add regional trend estimates, where regions 
+# with significant trend are bolded on map
+# colors represent decreasing (blue) or increasing (red) nutrients
+
 par(mfcol=c(4,2), cex = 1)
 par(mar = c(0,0,0,0))
 plot(huc4,col=get.col.bins(huc4$tn_slope), lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tn_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
 
-
-#map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
-#                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
-#                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
-#                                  "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=2,lty=3, add = TRUE)
 plot(huc4,col=get.col.bins(huc4$tp_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tp_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
 
@@ -215,10 +217,7 @@ plot(huc4[which(huc4$tntp_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
 plot(huc4,col=get.col.bins(huc4$chl_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1))
 plot(huc4[which(huc4$chl_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
 
-
-######################################################
-## create a map that plots lake random effects
-######################################################
+# plot lake-specific trends
 
 #function to extract lake BLUPS
 lake.map.data <- function(lake.RE)  {
@@ -232,7 +231,7 @@ lake.map.data <- function(lake.RE)  {
       dat$sig[i] = FALSE
     }
   }
-  dat = merge(dat, lake.info[,c("lagoslakeid", "nhd_lat", "nhd_long")], by = "lagoslakeid", all.x = TRUE)
+  dat = merge(dat, lake.predictors[,c("lagoslakeid", "nhd_lat", "nhd_long")], by = "lagoslakeid", all.x = TRUE)
   return(dat)
 }
 
@@ -281,38 +280,62 @@ points(temp.chl$nhd_long[which(temp.chl$sig==TRUE)], temp.chl$nhd_lat[which(temp
 
 dev.off()
 
-# make a contour plot of x = tp, y = tn and z = chl. Basically, show response of 
-# chlorophyll to changes in tp and tn
+# ====================================================
+# Figure 2
+# create a figure that plots %TN change vs %TP change
 
-dat = change.db.all[complete.cases(change.db.all), ]
-dat = data.frame(x = dat$tp_coef_mean*100, y = dat$tn_coef_mean*100, z = dat$chl_coef_mean*100)
+temp = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$tp_coef_mean),]
+temp.tn = 100*temp$tn_coef_mean
+temp.tp = 100*temp$tp_coef_mean
 
-require(akima)
+pdf("TN_TP_change.pdf")
+par(mar=c(5,5,1,1))
+#tn positive, tp no change
+plot(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymin > 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0], 
+     xlab = "% Change in TP per year", 
+     ylab = "% Change in TN per year", 
+     cex = 1.5, cex.lab = 2, cex.axis = 1.5,  col = "black", pch=24, bg = col.tn,
+     xlim = c(-6,6), ylim = c(-6, 3))
+# Tn no change, TP no change
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_ymax > 0],
+       cex = 1.5, bg = rgb(254,254,254,max=255,alpha=178), pch=21)
+#TN up, TP up
+points(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymin > 0 & temp$tp_ymin > 0],
+       col = "black", bg = col.both, pch=19, cex = 1.5)
 
-dat.m = interp(x = dat$x, y = dat$y, z = dat$z, linear = TRUE, 
-               extrap = FALSE, duplicate = "mean")
+#TN down, TP down
+points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymax < 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymax < 0],
+       col = "black", bg = col.both, pch=19, cex = 1.5)
 
-# Create contour plot
+#TN down, TP no change
+points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0],
+       col = "black", bg = col.tn, pch=25, cex = 1.5)
 
-png("Nutrients_Chl_contour.png", height = 1200, width = 1200, pointsize = 20)
-par(mar=c(5,5,3,1),cex = 1.2, cex.lab = 1.5, cex.axis = 1.2)
-filled.contour(x = dat.m$x,
-               y = dat.m$y, 
-               z = dat.m$z,
-               levels = c(-10,-4,-3,-2,-1,0,1,2,3,4,10),
-               col = rev(brewer.pal(10, name = "RdBu")),
-               #color.palette = colorRampPalette(c(rgb(5,48,97,max=255), rgb(255,255,255,max=255),rgb(103,0,31,max=255))), 
-               xlab = "% TP Change Per Year", 
-               ylab = "% TN Change Per Year", 
-               key.title = title(main = paste("% Chl Change per Year"), cex.main = 1))
-lines(x = c(-6.45, 3.2), y = c(0,0),  lwd = 4, lty = 2)
-lines(x = c(-1.24,-1.24), y = c(-4.09,2.485),  lwd = 4, lty = 2)
-text(labels = "n = 50", x = -6, y = 2.2, cex = 2, adj = 0)
-text(labels = "n = 91", x = -.9, y = 2.2, cex = 2, adj = 0)
-text(labels = "n = 195", x = 1.6, y = -3.8, cex = 2, adj = 0)
-text(labels = "n = 307", x = -6, y = -3.8, cex = 2, adj = 0)
+#TN no change, TP down
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymax<0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymax<0],
+       col = "black", bg = col.tp, pch=25, cex = 1.5)
+
+#TN no change, TP up
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin>0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin>0],
+       col = "black", bg = col.tp, pch=24, cex = 1.5)
+
+#TN down, TP up
+points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymin > 0],
+       col = "black", bg = col.both,  pch=19, cex = 1.5)
+
+
+legend("bottomright",
+       c("No Change", "Both Changing", "TN Increasing",  "TP Increasing","TN Decreasing", "TP Decreasing"), 
+       pch = c(21,21,24,24,25,25), 
+       pt.bg = c("white", col.both, col.tn, col.tp, col.tn, col.tp), 
+       pt.cex = 1.5)
+
+abline(0,1)
+abline(h=0, col = col.tn, lwd = 3)
+abline(v=0, col = col.tp, lwd = 3)
 
 dev.off()
+
 
 ########################
 # filling in summary tables
@@ -322,120 +345,6 @@ dev.off()
 change.db.tntp[[4]][2,2] - (qnorm(.975)*change.db.tntp[[4]][2,4])
 change.db.tntp[[4]][2,2] + (qnorm(.975)*change.db.tntp[[4]][2,4])
 
-##########################
-# create cumulative distributions of start and end concentrations
-##########################
-
-new.tn = unique(data.tn[,c("lagoslakeid", "hu4_zoneid")])
-new.tn = rbind(new.tn, new.tn)
-new.tn$sampleyear_cor[1:833] = 0
-new.tn$sampleyear_cor[834:1666] = 21
-new.tn$sampleyear_cor = as.integer(new.tn$sampleyear_cor)
-
-
-new.predict = predict(tn.3fr23, newdata = new.tn)
-new.tn = unique(data.tn[,c("lagoslakeid", "hu4_zoneid")])
-new.tn$pred_1990 = new.predict[c(1:833)]
-new.tn$pred_2011 = new.predict[c(834:1666)]
-
-
-# simulate starting and ending concentrations in 1990 and 2011, respectively
-mySumm <- function(.) {
-  predict(., newdata = new.tn, re.form = NULL)
-}
-
-
-
-sumBoot <- function(merBoot) {
-  return(
-    data.frame(fit = apply(merBoot$t, 2, function(x) mean(x, na.rm=TRUE)),
-               lwr = apply(merBoot$t, 2, function(x) mean(x,na.rm=TRUE) - (qnorm(.95)*sd(x))),
-               upr = apply(merBoot$t, 2, function(x) mean(x,na.rm=TRUE) + (qnorm(.95)*sd(x)))
-  )
-  )
-}
-
-PI.boot1.time <- system.time(
-  boot1 <- lme4::bootMer(tn.3fr23, mySumm, nsim=100, use.u=FALSE, type="parametric")
-)
-
-PI.boot1 <- sumBoot(boot1)
-
-mySumm <- function(.) { s <- sigma(.)
-c(beta =getME(., "beta"), sigma = s, sig01 = unname(s * getME(., "theta"))) 
-}
-
-system.time(boo01 <- bootMer(tn.3fr23, mySumm, nsim = 100))
-
-tn.compare = data.frame(fit.2011 = PI.boot1$fit[1:833], lwr.2011 = PI.boot1$lwr[1:833], upr.2011 = PI.boot1$upr[1:833],
-                        fit.1990 = PI.boot1$fit[834:1666], lwr.1990 = PI.boot1$lwr[834:1666], upr.1990 = PI.boot1$upr[834:1666])
-tn.2011 = PI.boot1
-
-tn.2011$lagoslakeid = new.tn$lagoslakeid
-tn.2011$hu4_zoneid = new.tn$hu4_zoneid
-test = change.db.tn[[1]][change.db.tn[[1]]$term == "(Intercept)", ]
-test = test[, c(3,11,13,14)]
-tn.2011 = merge(tn.2011, test, by = "lagoslakeid")
-tn.2011$diff = tn.2011$fit - tn.2011$coef_mean 
-
-test1 =  change.db.tn[[1]][change.db.tn[[1]]$term == "(Intercept)", ]
-test1 = test1[,c("lagoslakeid", "coef_mean")]
-test2 =  change.db.tn[[1]][change.db.tn[[1]]$term == "sampleyear_cor", ]
-test2 = test2[,c("lagoslakeid", "coef_mean")]
-
-test3 = merge(test1, test2, by = "lagoslakeid")
-# show cumulative distributions of concentration in those time points
-
-test = lmer(log(tn_umol) ~ sampleyear_cor + (sampleyear_cor||lagoslakeid) + (sampleyear_cor||hu4_zoneid), data = data.tn, REML=TRUE)
-
-PI.time <- system.time(
-  PI <- predictInterval(merMod = test, newdata = data.tn, 
-                        level = 0.90, n.sims = 1000,
-                        stat = "median", type="linear.prediction",
-                        include.resid.var = TRUE)
-)
-
-
-plot(ecdf(tn.compare$fit.1990), 
-     ylab = "Cumulative Proportion", 
-     xlab = "TN (umol/L)", 
-     col = "blue", 
-     cex = .5, 
-     cex.axis = 1.3, 
-     cex.main = 1.7)
-
-plot(ecdf(tn.compare$fit.2011), add = TRUE, cex = 0.5, col = "deeppink")
-
-## visualize raw data (nutrient ~ year) by region and by lake
-pdf("tn_lakebyregion.pdf")
-temp = data.tn[with(data.tn, order(lagoslakeid, sampleyear_cor)), ]
-xyplot(log(tn_umol)~sampleyear_cor | factor(hu4_zoneid), data=temp, pch=19,
-       xlab = "Year since 1990", ylab = "log(TN umol)", layout=c(10,5),type="l", groups = lagoslakeid)
-dev.off()
-
-pdf("tp_lakebyregion.pdf")
-temp = data.tp[with(data.tp, order(lagoslakeid, sampleyear_cor)), ]
-
-xyplot(log(tp_umol)~sampleyear_cor | factor(hu4_zoneid), data=temp, pch=19,
-       xlab = "Year since 1990", ylab = "log(TP umol)", layout=c(10,6),type="l", groups = lagoslakeid)
-dev.off()
-
-pdf("tntp_bylakeregion.pdf")
-temp = data.tntp[with(data.tntp, order(lagoslakeid, sampleyear_cor)), ]
-
-xyplot(log(tn_tp_umol)~sampleyear_cor | factor(hu4_zoneid), data=temp, pch=19,
-       xlab = "Year since 1990", ylab = "log(TN:TP molar)", layout=c(9,5),type="l", groups = lagoslakeid)
-dev.off()
-
-pdf("chl_lakebyregion.pdf")
-temp = data.chl[with(data.chl, order(lagoslakeid, sampleyear_cor)), ]
-temp = temp[temp$hu4_zoneid != "OUT_OF_HU4",]
-
-xyplot(log(chl)~sampleyear_cor | factor(hu4_zoneid), data=temp, pch=19,
-       xlab = "Year since 1990", ylab = "log(Chl umol)", layout=c(9,7),type="l", groups = lagoslakeid)
-dev.off()
-
-# create plot of nutrients vs model parameters (n obs/lake, median year, etc)
 
 
 # ==========================================
