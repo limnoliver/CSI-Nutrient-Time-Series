@@ -266,22 +266,9 @@ change.db.all$chl_change = as.factor(change.db.all$chl_change)
 
 write.table(change.db.all, "lmer_change_db.txt")
 
-# ==============================================
-# random forest analysis 
-
-# This code uses the predictor variables located at: 
-# to predict whether a lake is increasing, decreasing, or not changing
-# in the four response variables (TN, TP, TN:TP, Chl)
-
-remove(list = ls())
-# source above code and read in lake-specific trends
 
 
-# get geo predictor data
-# change to LTER data source when posted, for now:
 
-lake.predictors = read.csv("LAGOS_supporting_geophysical.csv", header = TRUE)
-head(lake.predictors)
 
 
 
