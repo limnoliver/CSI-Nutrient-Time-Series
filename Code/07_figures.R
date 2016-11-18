@@ -1,5 +1,5 @@
-## use output from 00_Model_conditional
-## create dataframe with TN and TP change through time (and sd) estimates for each lake
+require(ggplot2)
+library(RColorBrewer)
 
 require(maps)
 install.packages("mapproj")
@@ -630,17 +630,24 @@ dev.off()
 #########################
 
 # create violin plots of important predictors identified by the rf
-
+library(ggplot2)
+quant.low = function(x){
+  quantile(x,.25)
+}
+quant.high = function(x){
+  quantile(x,.75)
+}
 library(ggplot2)
 
-pdf("tntp_top_var.pdf")
+pdf("tntp_top_var2.pdf")
 #TP vs ppt change
-ggplot(dat.keep, aes(x=tp_change, y=ppt_change, fill=tp_change)) + 
+dat.keep = lake.predictors[!is.na(lake.predictors$tp_change), ]
+ggplot(dat.keep, aes(x=tp_change, y=hu4_ppt_change, fill=tp_change)) + 
   geom_violin()+
   theme_classic()+
-  stat_summary(fun.ymin = "tenth", 
+  stat_summary(fun.ymin = "quant.low", 
                fun.y = "median",
-               fun.ymax = "ninetieth",
+               fun.ymax = "quant.high",
                geom="pointrange", shape = 3) +
   scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
   labs(x="TP Change", y="Regional Precipitation Change")+
@@ -649,8 +656,9 @@ ggplot(dat.keep, aes(x=tp_change, y=ppt_change, fill=tp_change)) +
   theme(axis.text=element_text(size = rel(1.6))) +
   theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
-
+dev.off()
 #TN vs regional TN dep 1990
+dat.keep = lake.predictors[!is.na(lake.predictors$tn_change), ]
 ggplot(dat.keep, aes(x=tn_change, y=hu4_dep_totaln_1990_mean, fill=tn_change)) + 
   geom_violin()+
   theme_classic()+
@@ -667,7 +675,8 @@ ggplot(dat.keep, aes(x=tn_change, y=hu4_dep_totaln_1990_mean, fill=tn_change)) +
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
 
 #TN:TP vs regional road density
-ggplot(dat.keep, aes(x=tntp_change, y=hu4_roaddensity_density_mperha, fill=tntp_change)) + 
+dat.keep = lake.predictors[!is.na(lake.predictors$tntp_change), ]
+ggplot(dat.keep, aes(x=tntp_change, y=hu4_dep_change, fill=tntp_change)) + 
   geom_violin()+
   theme_classic()+
   stat_summary(fun.ymin = "tenth", 
@@ -675,7 +684,7 @@ ggplot(dat.keep, aes(x=tntp_change, y=hu4_roaddensity_density_mperha, fill=tntp_
                fun.ymax = "ninetieth",
                geom="pointrange", shape = 3) +
   scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
-  labs(x="TN:TP Change", y="Regional Road Density")+
+  labs(x="TN:TP Change", y="Regional Deposition Change")+
   guides(fill=FALSE)+
   theme(axis.title=element_text(size = rel(2))) +
   theme(axis.text=element_text(size = rel(1.6))) +
@@ -683,7 +692,8 @@ ggplot(dat.keep, aes(x=tntp_change, y=hu4_roaddensity_density_mperha, fill=tntp_
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
 
 #Chl vs Regional mean temp in 2011
-ggplot(dat.keep, aes(x=chl_change, y=tmean.2011, fill=chl_change)) + 
+dat.keep = lake.predictors[!is.na(lake.predictors$chl_change), ]
+ggplot(dat.keep, aes(x=chl_change, y=hu4_tmean_1990/100, fill=chl_change)) + 
   geom_violin()+
   theme_classic()+
   stat_summary(fun.ymin = "tenth", 
@@ -691,7 +701,7 @@ ggplot(dat.keep, aes(x=chl_change, y=tmean.2011, fill=chl_change)) +
                fun.ymax = "ninetieth",
                geom="pointrange", shape = 3) +
   scale_fill_manual(values = c(rgb(67,147,195,max=255),rgb(214,96,77,max=255), "gray"))+ 
-  labs(x="Chl Change", y="Regional Mean Temperature in 2011")+
+  labs(x="Chl Change", y="Regional Mean Temp. in 1990")+
   guides(fill=FALSE)+
   theme(axis.title=element_text(size = rel(1.5))) +
   theme(axis.text=element_text(size = rel(1.2))) +
