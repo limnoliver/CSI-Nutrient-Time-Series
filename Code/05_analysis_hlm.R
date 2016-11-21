@@ -18,8 +18,24 @@ library(randomForest)
 # modify below code to source published LTER data
 # but for now, data will look like: 
 
-setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Publication")
-all.nut.data = read.csv("LAGOS_summer_meanvals.csv", header = TRUE)
+infile1  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/e955b964c44276632edd9f3629022077" 
+infile1 <- sub("^https","http",infile1) 
+all.nut.data <-read.csv(infile1,header=F 
+               ,skip=1
+               ,sep=","  
+               , col.names=c(
+                 "lagoslakeid",     
+                 "sampleyear",     
+                 "value",     
+                 "variable"    ), check.names=TRUE)
+
+
+# Fix any interval or ratio columns mistakenly read in as nominal 
+# and nominal columns read as numeric or dates read as strings
+
+if (class(all.nut.data$lagoslakeid)!="factor") all.nut.data$lagoslakeid<- as.factor(all.nut.data$lagoslakeid)
+if (class(all.nut.data$value)=="factor") all.nut.data$value <-as.numeric(levels(all.nut.data$value))[as.integer(all.nut.data$value) ]
+if (class(all.nut.data$variable)!="factor") all.nut.data$variable<- as.factor(all.nut.data$variable)
 
 # create a sample year column corrected to 1990
 
