@@ -1,6 +1,8 @@
 require(ggplot2)
 library(RColorBrewer)
 library(maps)
+require(akima)
+
 
 install.packages("mapproj")
 library(mapproj)
@@ -256,17 +258,15 @@ dev.off()
 
 # =================================================
 # Figure 3
+# creates a figure that plots %Chl change vs TN and TP
 
-#####################################################
-## create a figure that plots %Chl change vs TN and TP
-#####################################################
-
+# filter for lakes that have N and Chl data
 temp = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$chl_coef_mean),]
 temp.tn = 100*temp$tn_coef_mean
 temp.chl = 100*temp$chl_coef_mean
 
-pdf("Chl_TN_change.pdf")
-par(mar=c(5,5,1,1))
+pdf("Chl_TN_TP_change.pdf")
+par(mar=c(5,5,1,1), mfrow=c(2,1), width = 4, height = 8)
 #tn positive, chl no change
 plot(temp.tn[temp$tn_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],temp.chl[temp$tn_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0], 
      ylab = "% Change in Chl per year", 
@@ -325,13 +325,11 @@ legend("bottomright",
 abline(0,1)
 abline(h=0, col = col.chl, lwd = 3)
 abline(v=0, col = col.tn, lwd = 3)
-dev.off()
 
-#######
-### now plot chl vs TP
-#######
-pdf("Chl_TP_change.pdf")
-#png("Chl_TP_change.png", height = 1200, width = 1200)
+
+# now plot chl vs TP
+
+# filter for lakes that have TP and Chl data
 par(mar=c(5,5,1,1))
 temp = change.db.all[!is.na(change.db.all$tp_coef_mean) & !is.na(change.db.all$chl_coef_mean),]
 temp.tp = 100*temp$tp_coef_mean
@@ -393,6 +391,39 @@ legend("bottomright",
 abline(0,1)
 abline(h=0, col = col.chl, lwd = 3)
 abline(v=0, col = col.tp, lwd = 3)
+
+dev.off()
+
+
+# Create contour plot
+# have to create separately and stitch together later
+# could not get contour plot to print with Tn and Tp plot
+
+# filter data for lakes that have TN, TP and chl records
+dat = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$tp_coef_mean)& !is.na(change.db.all$chl_coef_mean),]
+dat = data.frame(x = dat$tp_coef_mean*100, y = dat$tn_coef_mean*100, z = dat$chl_coef_mean*100)
+
+# interpolate for contour plot
+dat.m = interp(x = dat$x, y = dat$y, z = dat$z, linear = TRUE, 
+               extrap = FALSE, duplicate = "mean")
+
+png("Nutrients_Chl_contour.png", height = 1200, width = 1200, pointsize = 20)
+par(mar=c(5,5,3,0),cex = 1.2, cex.lab = 2.5, cex.axis = 2,oma=c(0,1,0,0))
+filled.contour(x = dat.m$x,
+               y = dat.m$y, 
+               z = dat.m$z,
+               levels = c(-10,-7,-4,-3,-2,-1,0,1,2,3,4,7,10),
+               col = c("#031932",rev(brewer.pal(10, name = "RdBu")),"#400114"),
+               #color.palette = colorRampPalette(c(rgb(5,48,97,max=255), rgb(255,255,255,max=255),rgb(103,0,31,max=255))), 
+               xlab = "% Change in TP Per Year",
+               ylab = "% Change in TN Per Year", 
+               key.title = title(main = "% Change in \nChl Per Year", cex.main = 1.1))
+lines(x = c(-6.45, 3.2), y = c(0,0),  lwd = 4, lty = 2)
+lines(x = c(-1.24,-1.24), y = c(-4.09,2.485),  lwd = 4, lty = 2)
+text(labels = "n = 51", x = -6.1, y = 2.3, cex = 2, adj = 0)
+text(labels = "n = 93", x = -1, y = 2.3, cex = 2, adj = 0)
+text(labels = "n = 201", x = 1.1, y = -3.8, cex = 2, adj = 0)
+text(labels = "n = 316", x = -6.1, y = -3.8, cex = 2, adj = 0)
 
 dev.off()
 
