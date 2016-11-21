@@ -19,8 +19,9 @@ change.db.all = merge(change.db.all, lake.predictors[,c(1,4,5)], by = "lagoslake
 # set colors for tn and tp
 col.tn = rgb(.94,.73,0.035,.7)
 col.tp = rgb(.07,.57,.45,0.7)
-col.both = rgb(68/255, 36/255,0, 0.7)
+col.both = rgb(48/255, 16/255,0, 0.7)
 col.no.change = "darkgray"
+col.chl = rgb(163,25,255,max=255,alpha=178)
 
 #change to match the number of lakes in each database
 n.tn = 833
