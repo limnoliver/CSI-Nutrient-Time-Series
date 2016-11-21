@@ -400,24 +400,26 @@ dev.off()
 # could not get contour plot to print with Tn and Tp plot
 
 # filter data for lakes that have TN, TP and chl records
-dat = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$tp_coef_mean)& !is.na(change.db.all$chl_coef_mean),]
-dat = data.frame(x = dat$tp_coef_mean*100, y = dat$tn_coef_mean*100, z = dat$chl_coef_mean*100)
+temp = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$tp_coef_mean)& !is.na(change.db.all$chl_coef_mean),]
+temp = data.frame(x = temp$tp_coef_mean*100, y = temp$tn_coef_mean*100, z = temp$chl_coef_mean*100)
 
 # interpolate for contour plot
-dat.m = interp(x = dat$x, y = dat$y, z = dat$z, linear = TRUE, 
+temp.m = interp(x = temp$x, y = temp$y, z = temp$z, linear = TRUE, 
                extrap = FALSE, duplicate = "mean")
 
 png("Nutrients_Chl_contour.png", height = 1200, width = 1200, pointsize = 20)
 par(mar=c(5,5,3,0),cex = 1.2, cex.lab = 2.5, cex.axis = 2,oma=c(0,1,0,0))
-filled.contour(x = dat.m$x,
-               y = dat.m$y, 
-               z = dat.m$z,
+filled.contour(x = temp.m$x,
+               y = temp.m$y, 
+               z = temp.m$z,
                levels = c(-10,-7,-4,-3,-2,-1,0,1,2,3,4,7,10),
                col = c("#031932",rev(brewer.pal(10, name = "RdBu")),"#400114"),
                #color.palette = colorRampPalette(c(rgb(5,48,97,max=255), rgb(255,255,255,max=255),rgb(103,0,31,max=255))), 
                xlab = "% Change in TP Per Year",
                ylab = "% Change in TN Per Year", 
                key.title = title(main = "% Change in \nChl Per Year", cex.main = 1.1))
+# lines are a bit weird on this graph and don't necessarily correspond
+# to axis values, may have to tweak by hand
 lines(x = c(-6.45, 3.2), y = c(0,0),  lwd = 4, lty = 2)
 lines(x = c(-1.24,-1.24), y = c(-4.09,2.485),  lwd = 4, lty = 2)
 text(labels = "n = 51", x = -6.1, y = 2.3, cex = 2, adj = 0)
@@ -426,17 +428,6 @@ text(labels = "n = 201", x = 1.1, y = -3.8, cex = 2, adj = 0)
 text(labels = "n = 316", x = -6.1, y = -3.8, cex = 2, adj = 0)
 
 dev.off()
-
-
-########################
-# filling in summary tables
-##########################
-
-## extract model coefficients
-change.db.tntp[[4]][2,2] - (qnorm(.975)*change.db.tntp[[4]][2,4])
-change.db.tntp[[4]][2,2] + (qnorm(.975)*change.db.tntp[[4]][2,4])
-
-
 
 # ==========================================
 # Figure 4
@@ -449,8 +440,9 @@ quant.high = function(x){
   quantile(x,.75)
 }
 
-pdf("tntp_top_var2.pdf")
+pdf("tp_top_var.pdf")
 #TP vs ppt change
+par(mfrow=c(2,2))
 dat.keep = lake.predictors[!is.na(lake.predictors$tp_change), ]
 ggplot(dat.keep, aes(x=tp_change, y=hu4_ppt_change, fill=tp_change)) + 
   geom_violin()+
@@ -468,6 +460,8 @@ ggplot(dat.keep, aes(x=tp_change, y=hu4_ppt_change, fill=tp_change)) +
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
 dev.off()
 
+pdf("tn_top_var.pdf")
+
 #TN vs regional TN dep 1990
 dat.keep = lake.predictors[!is.na(lake.predictors$tn_change), ]
 ggplot(dat.keep, aes(x=tn_change, y=hu4_dep_totaln_1990_mean, fill=tn_change)) + 
@@ -484,8 +478,10 @@ ggplot(dat.keep, aes(x=tn_change, y=hu4_dep_totaln_1990_mean, fill=tn_change)) +
   theme(axis.text=element_text(size = rel(1.6))) +
   theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
+dev.off()
 
 #TN:TP vs regional dep change
+pdf("tntp_top_var.pdf")
 dat.keep = lake.predictors[!is.na(lake.predictors$tntp_change), ]
 ggplot(dat.keep, aes(x=tntp_change, y=hu4_dep_change, fill=tntp_change)) + 
   geom_violin()+
@@ -501,8 +497,10 @@ ggplot(dat.keep, aes(x=tntp_change, y=hu4_dep_change, fill=tntp_change)) +
   theme(axis.text=element_text(size = rel(1.6))) +
   theme(axis.text.y=element_text(margin=margin(2,2,3,6,"pt")))+
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
+dev.off()
 
-#Chl vs Regional mean temp in 2011
+#Chl vs Regional mean temp in 1990
+pdf("chl_top_var.pdf")
 dat.keep = lake.predictors[!is.na(lake.predictors$chl_change), ]
 ggplot(dat.keep, aes(x=chl_change, y=hu4_tmean_1990/100, fill=chl_change)) + 
   geom_violin()+
@@ -521,8 +519,19 @@ ggplot(dat.keep, aes(x=chl_change, y=hu4_tmean_1990/100, fill=chl_change)) +
 dev.off()
 
 
+########################
+# filling in summary tables
+##########################
+
+## extract model coefficients
+change.db.tntp[[4]][2,2] - (qnorm(.975)*change.db.tntp[[4]][2,4])
+change.db.tntp[[4]][2,2] + (qnorm(.975)*change.db.tntp[[4]][2,4])
+
+
+
 ###################################
 ###################################
+
 pdf("response_vs_modelvals.pdf")
 par(mfcol = c(4,3), oma = c(4,3,0,0), mar = c(2,1,2,1))
 plot(tn_coef_mean~log(tn_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
