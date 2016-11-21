@@ -84,34 +84,6 @@ abline(v=0, col = col.tp, lwd = 3)
 
 dev.off()
 
-###############################################
-## create figures showing change in TN and TP from after 1990
-## to change in TN and TP after 2000
-pdf("slopes_2007_comparison.pdf", height = 8, width = 12)
-par(mfrow = c(1,2), mar=c(5,5,0,0), oma = c(0,4,1,1))
-plot(change.db.tp$tp.slopes.07 ~ change.db.tp$tp.slopes, 
-     pch = 1,  cex = 1.5, col = "gray47", xlab = "% Change per year > 1990", 
-     ylab = "% Change per year > 2007", cex.lab = 1.5, cex.axis = 1.2)
-points(change.db.tp$tp.slopes.07[change.db.tp$tp.change == "negative"] ~ change.db.tp$tp.slopes[change.db.tp$tp.change == "negative"], 
-     pch = 21, bg = col.tp, cex = 1.5)
-points(change.db.tp$tp.slopes.07[change.db.tp$tp.change == "positive"] ~ change.db.tp$tp.slopes[change.db.tp$tp.change == "positive"], 
-       pch = 21, bg = col.both, cex = 1.5)
-text(x = -.1, y = .2, "1990: -0.02% per year \n2007: -0.16% per year", pos = 4, cex = 1.5)
-legend("bottomright", legend = c("TN Not Changing", "TN Increasing", "TN Decreasing"), pch = c(1,21,21), pt.bg = c(NA, col.both, col.tp), pt.cex = 1.5, cex = 1.2)
-abline(0,1)
-
-plot(change.db.tn$tn.slopes.07 ~ change.db.tn$tn.slopes, 
-     pch = 1,  cex = 1.5, col = "gray47", xlab = "% Change per year > 1990", 
-     ylab = "", cex.lab = 1.5, cex.axis = 1.2)
-points(change.db.tn$tn.slopes.07[change.db.tn$tn.change == "negative"] ~ change.db.tn$tn.slopes[change.db.tn$tn.change == "negative"], 
-       pch = 21, bg = col.tn, cex = 1.5)
-points(change.db.tn$tn.slopes.07[change.db.tn$tn.change == "positive"] ~ change.db.tn$tn.slopes[change.db.tn$tn.change == "positive"], 
-       pch = 21, bg = col.both, cex = 1.5)
-text(x = -.06, y = .17, "1990: -0.67% per year \n2007: 1.4% per year", pos = 4, cex = 1.5)
-legend("bottomright", legend = c("TN Not Changing", "TN Increasing", "TN Decreasing"), pch = c(1,21,21), pt.bg = c(NA, col.both, col.tn), pt.cex = 1.5, cex = 1.2)
-abline(0,1)
-dev.off()
-
 # =================================================
 # Figure 1
 # code that plots 8 maps: for each nutrient or chlorophyll response, 
