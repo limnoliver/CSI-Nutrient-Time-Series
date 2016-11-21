@@ -11,9 +11,10 @@ require(plyr)
 
 # ==============================================
 # gather predictor and response data
-
+ 
 # get geo predictor data
 # change to LTER data source when posted, for now:
+
 
 lake.predictors = read.csv("LAGOS_supporting_geophysical.csv", header = TRUE)
 head(lake.predictors)
