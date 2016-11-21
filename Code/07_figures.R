@@ -28,61 +28,6 @@ n.tp = 2096
 n.tntp = 742
 n.chl = 2239
 
-#####################################################
-## create a figure that plots %TN change vs %TP change
-#####################################################
-
-temp = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$tp_coef_mean),]
-temp.tn = 100*temp$tn_coef_mean
-temp.tp = 100*temp$tp_coef_mean
-
-pdf("TN_TP_change.pdf")
-par(mar=c(5,5,1,1))
-#tn positive, tp no change
-plot(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymin > 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0], 
-     xlab = "% Change in TP per year", 
-     ylab = "% Change in TN per year", 
-     cex = 1.5, cex.lab = 2, cex.axis = 1.5,  col = "black", pch=24, bg = col.tn,
-     xlim = c(-6,6), ylim = c(-6, 3))
-# Tn no change, TP no change
-points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_ymax > 0],
-       pch=1, cex = 1.5)
-#TN up, TP up
-points(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymin > 0 & temp$tp_ymin > 0],
-       col = "black", bg = col.both, pch=19, cex = 1.5)
-
-#TN down, TP down
-points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymax < 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymax < 0],
-       col = "black", bg = col.both, pch=19, cex = 1.5)
-
-#TN down, TP no change
-points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0],
-       col = "black", bg = col.tn, pch=25, cex = 1.5)
-
-#TN no change, TP down
-points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymax<0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymax<0],
-       col = "black", bg = col.tp, pch=25, cex = 1.5)
-
-#TN no change, TP up
-points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin>0]~temp.tp[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin>0],
-       col = "black", bg = col.tp, pch=24, cex = 1.5)
-
-#TN down, TP up
-points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymin > 0],
-       col = "black", bg = col.both,  pch=19, cex = 1.5)
-
-
-legend("bottomright",
-       c("No Change", "Both Changing", "TN Increasing",  "TP Increasing","TN Decreasing", "TP Decreasing"), 
-       pch = c(21,21,24,24,25,25), 
-       pt.bg = c("white", col.both, col.tn, col.tp, col.tn, col.tp), 
-       pt.cex = 1.5)
-
-abline(0,1)
-abline(h=0, col = col.tn, lwd = 3)
-abline(v=0, col = col.tp, lwd = 3)
-
-dev.off()
 
 # =================================================
 # Figure 1
@@ -304,6 +249,148 @@ legend("bottomright",
 
 abline(0,1)
 abline(h=0, col = col.tn, lwd = 3)
+abline(v=0, col = col.tp, lwd = 3)
+
+dev.off()
+
+# =================================================
+# Figure 3
+
+#####################################################
+## create a figure that plots %Chl change vs TN and TP
+#####################################################
+
+temp = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$chl_coef_mean),]
+temp.tn = 100*temp$tn_coef_mean
+temp.chl = 100*temp$chl_coef_mean
+
+pdf("Chl_TN_change.pdf")
+par(mar=c(5,5,1,1))
+#tn positive, chl no change
+plot(temp.tn[temp$tn_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],temp.chl[temp$tn_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0], 
+     ylab = "% Change in Chl per year", 
+     xlab = "% Change in TN per year", 
+     cex = 1.5, cex.lab = 2, cex.axis = 1.5,  col = "black", pch=24, bg = col.tn,
+     ylim = c(-10,13), xlim = c(-6, 6))
+# Tn no change, chl no change
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],temp.chl[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],
+       cex = 1.5,bg = rgb(254,254,254,max=255,alpha=178), pch=21)
+
+#TN down, Chl no change
+points(temp.tn[temp$tn_ymax < 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],temp.chl[temp$tn_ymax < 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],
+       col = "black", bg = col.tn, pch=25, cex = 1.5)
+
+#TN no change, Chl down
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymax<0],temp.chl[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymax<0],
+       col = "black", bg = col.chl, pch=25, cex = 1.5)
+
+#TN no change, Chl up
+points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymin>0],temp.chl[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymin>0],
+       col = "black", bg = col.chl, pch=24, cex = 1.5)
+
+#TN down, chl up
+points(temp.tn[temp$tn_ymax < 0 & temp$chl_ymin > 0],temp.chl[temp$tn_ymax < 0 & temp$chl_ymin > 0],
+       col = "black", bg = col.both,  pch=21, cex = 1.5)
+#TN down, chl down
+points(temp.tn[temp$tn_ymax < 0 & temp$chl_ymax < 0],temp.chl[temp$tn_ymax < 0 & temp$chl_ymax < 0],
+       col = "black", bg = col.both, pch=21, cex = 1.5)
+#TN up, chl up
+points(temp.tn[temp$tn_ymin > 0 & temp$chl_ymin > 0],temp.chl[temp$tn_ymin > 0 & temp$chl_ymin > 0],
+       col = "black", bg = col.both, pch=21, cex = 1.5)
+#TN up, chl down
+points(temp.tn[temp$tn_ymin > 0 & temp$chl_ymax < 0],temp.chl[temp$tn_ymin > 0 & temp$chl_ymax < 0],
+       col = "black", bg = col.both, pch=21, cex = 1.5)
+
+#find how many lakes fall into each category
+
+n.no = length(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymin < 0 & temp$chl_ymax > 0])
+n.both = length(temp.tn[temp$tn_ymax < 0 & temp$chl_ymin > 0]) +
+  length(temp.tn[temp$tn_ymax < 0 & temp$chl_ymax < 0]) +
+  length(temp.tn[temp$tn_ymin > 0 & temp$chl_ymin > 0]) + 
+  length(temp.tn[temp$tn_ymin > 0 & temp$chl_ymax < 0])
+n.tn.inc = length(temp.tn[temp$tn_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0])
+n.tn.dec = length(temp.tn[temp$tn_ymax < 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0])
+n.chl.inc = length(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymin>0])
+n.chl.dec = length(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$chl_ymax<0])
+
+
+
+legend("bottomright",
+       c("No Change (64%)", "Both Changing (2%)", "TN Increasing (1%)",  "Chl Increasing (21%)","TN Decreasing (9%)", "Chl Decreasing (2%)"), 
+       pch = c(21,21,24,24,25,25), 
+       pt.bg = c("white", col.both, col.tn, col.chl, col.tn, col.chl), 
+       pt.cex = 1.5)
+
+abline(0,1)
+abline(h=0, col = col.chl, lwd = 3)
+abline(v=0, col = col.tn, lwd = 3)
+dev.off()
+
+#######
+### now plot chl vs TP
+#######
+pdf("Chl_TP_change.pdf")
+#png("Chl_TP_change.png", height = 1200, width = 1200)
+par(mar=c(5,5,1,1))
+temp = change.db.all[!is.na(change.db.all$tp_coef_mean) & !is.na(change.db.all$chl_coef_mean),]
+temp.tp = 100*temp$tp_coef_mean
+temp.chl = 100*temp$chl_coef_mean
+
+#tp positive, chl no change
+plot(temp.tp[temp$tp_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],temp.chl[temp$tp_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0], 
+     xlab = "% Change in TP per year", 
+     ylab = "% Change in Chl per year", 
+     cex = 1.5, cex.lab = 2, cex.axis = 1.5,  col = "black", pch=24, bg = col.tp,
+     ylim = c(-10,13), xlim = c(-7, 6))
+# tp no change, chl no change
+points(temp.tp[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],temp.chl[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],
+       cex = 1.5,bg = rgb(254,254,254,max=255,alpha=178), pch=21)
+
+
+#tp down, Chl no change
+points(temp.tp[temp$tp_ymax < 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],temp.chl[temp$tp_ymax < 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],
+       col = "black", bg = col.tp, pch=25, cex = 1.5)
+
+#tp no change, Chl down
+points(temp.tp[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymax<0],temp.chl[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymax<0],
+       col = "black", bg = col.chl, pch=25, cex = 1.5)
+
+#tp no change, Chl up
+points(temp.tp[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymin>0],temp.chl[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymin>0],
+       col = "black", bg = col.chl, pch=24, cex = 1.5)
+
+#tp down, chl up
+points(temp.tp[temp$tp_ymax < 0 & temp$chl_ymin > 0],temp.chl[temp$tp_ymax < 0 & temp$chl_ymin > 0],
+       col = "black", bg = col.both,  pch=21, cex = 1.5)
+#tp down, chl down
+points(temp.tp[temp$tp_ymax < 0 & temp$chl_ymax < 0],temp.chl[temp$tp_ymax < 0 & temp$chl_ymax < 0],
+       col = "black", bg = col.both, pch=21, cex = 1.5)
+#tp up, chl up
+points(temp.tp[temp$tp_ymin > 0 & temp$chl_ymin > 0],temp.chl[temp$tp_ymin > 0 & temp$chl_ymin > 0],
+       col = "black", bg = col.both, pch=21, cex = 1.5)
+#tp up, chl down
+points(temp.tp[temp$tp_ymin > 0 & temp$chl_ymax < 0],temp.chl[temp$tp_ymin > 0 & temp$chl_ymax < 0],
+       col = "black", bg = col.both, pch=21, cex = 1.5)
+
+#find number of lakes in each category
+n.no = length(temp.tp[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymin < 0 & temp$chl_ymax > 0])
+n.both = length(temp.tp[temp$tp_ymax < 0 & temp$chl_ymin > 0]) +
+  length(temp.tp[temp$tp_ymax < 0 & temp$chl_ymax < 0]) +
+  length(temp.tp[temp$tp_ymin > 0 & temp$chl_ymin > 0]) + 
+  length(temp.tp[temp$tp_ymin > 0 & temp$chl_ymax < 0])
+n.tp.inc = length(temp.tp[temp$tp_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0])
+n.tp.dec = length(temp.tp[temp$tp_ymax < 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0])
+n.chl.inc = length(temp.tp[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymin>0])
+n.chl.dec = length(temp.tp[temp$tp_ymin < 0 & temp$tp_ymax >0 & temp$chl_ymax<0])
+
+legend("bottomright",
+       c("No Change (67%)", "Both Changing (3%)", "TP Increasing (4%)",  "Chl Increasing (12%)","TP Decreasing (10%)", "Chl Decreasing (4%)"), 
+       pch = c(21,21,24,24,25,25), 
+       pt.bg = c("white", col.both, col.tp, col.chl, col.tp, col.chl), 
+       pt.cex = 1.5)
+
+abline(0,1)
+abline(h=0, col = col.chl, lwd = 3)
 abline(v=0, col = col.tp, lwd = 3)
 
 dev.off()
