@@ -598,8 +598,53 @@ ggplot(dat.keep, aes(x=chl_change, y=hu4_tmean_1990/100, fill=chl_change)) +
 dev.off()
 
 
-
-
 # ==========================================
+# Supplmental figures
+
 # Figure S2
-# show lake-specific trend values vs various data characteristics
+# show lake-specific categorical trends vs various data characteristics
+
+# first calculate variables of interest from raw data
+# this includes number of years of observation per lake (N Years), 
+# median year of observation in each lake (Median Obs Year)
+# mean nutrient value per lake (log Mean Value)
+
+# 
+remove(temp)
+temp = count(all.nut[all.nut$variable=="tn_umol", ], vars = "lagoslakeid")
+names(temp)[2] = "tn_nyear"
+dat.char = merge(lake.predictors[,c(1,46:49)], temp, by = "lagoslakeid", all.x = TRUE)
+
+temp = count(all.nut[all.nut$variable=="tp_umol", ], vars = "lagoslakeid")
+names(temp)[2] = "tp_nyear"
+dat.char = merge(dat.char, temp, by = "lagoslakeid", all.x = TRUE)
+
+
+# create a 4x3 panel that shows all responses ~ mean value/med year/nobs
+pdf("response_vs_modelvals_boxplot.pdf", height = 7, width = 10)
+par(mfrow = c(3,4), oma = c(4,3,0,0), mar = c(2,2,1,1))
+boxplot(log(tn_meanval)~tn_change, data = lake.predictors, xaxt = "n")
+boxplot(log(tp_meanval)~tp_change, data = lake.predictors, xaxt = "n")
+boxplot(log(tntp_meanval)~tntp_change, data = lake.predictors, xaxt = "n")
+boxplot(log(chl_meanval)~chl_change, data = lake.predictors, xaxt = "n")
+
+boxplot(tn_medyear~tn_change, data = lake.predictors, xaxt = "n")
+boxplot(tp_medyear~tp_change, data = lake.predictors, xaxt = "n")
+boxplot(tntp_medyear~tntp_change, data = lake.predictors, xaxt = "n")
+boxplot(chl_medyear~chl_change, data = lake.predictors, xaxt = "n")
+
+boxplot(tn_nyear~tn_change, data = lake.predictors, xlab = "TN Change")
+boxplot(tp_nyear~tp_change, data = lake.predictors, xlab = "TP Change")
+boxplot(tntp_nyear~tntp_change, data = lake.predictors, xlab = "TN:TP Change")
+boxplot(chl_nyear~chl_change, data = lake.predictors, "Chl Change")
+
+mtext("TN Change", side=1, line = 2, adj=0.11, outer = TRUE)
+mtext("TP Change", side=1, line = 2, adj=0.38, outer = TRUE)
+mtext("TN:TP Change", side=1, line = 2, adj=0.65, outer = TRUE)
+mtext("Chl Change", side=1, line = 2, adj=0.92, outer = TRUE)
+
+mtext("log Mean Value", side = 2, line = 1, adj=.9, outer = TRUE, padj = 1)
+mtext("Median Obs. Year", side = 2, line = 1, adj=.5, outer = TRUE, padj = 1)
+mtext("N Years", side = 2, line = 1, adj=.14, outer = TRUE, padj = 1)
+
+dev.off()
