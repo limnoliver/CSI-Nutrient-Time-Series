@@ -6,17 +6,98 @@ require(akima)
 
 install.packages("mapproj")
 library(mapproj)
+require(maps)
+require(maptools)
+require(rgdal)
+require(sp)
+require(ggplot2)
+library(colorspace)
 
-# ============================
-# Setup
+# ===============================================
+# PURPOSE:
+# this code recreates the figures from Oliver et al. (submitted)
+# relies on results of hierarchical linear models and random forest analysis
+# ================================================
+# Data import
 
-# import data - source from LTER wesbite. For now, use:
-source("06_analysis_rf.R")
-# will use change.db.all + lake.predictors
+# change.db.all is output from hlm analysis
 
-setwd("C:/Users/Samantha/Dropbox/CSI_LIMNO_Manuscripts-presentations/CSI_Nitrogen MSs/Time series/Data")
-lake.predictors = read.csv("LAGOS_supporting_geophysical.csv", header = TRUE)
-change.db.all = merge(change.db.all, lake.predictors[,c(1,4,5)], by = "lagoslakeid", all.x = TRUE)
+change.db.all = read.table("lmer_change_db.txt", header = TRUE)
+
+# import data - source from LTER wesbite where data are published:
+# for more info, see https://portal.lternet.edu/nis/mapbrowse?scope=knb-lter-ntl&identifier=333&revision=3
+
+# import nutrient values
+infile1  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/e955b964c44276632edd9f3629022077" 
+infile1 <- sub("^https","http",infile1) 
+all.nut <- read.csv(infile1,header=F, skip=1, sep=",", 
+                          col.names=c("lagoslakeid",     
+                                      "sampleyear",     
+                                      "value",     
+                                      "variable"), check.names=TRUE)
+
+# import geo variables
+
+infile2  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/cc35382bc48fc688750d0c358167f3e1" 
+infile2 <- sub("^https","http",infile2) 
+lake.predictors <- read.csv(infile2, header=F, skip=1, sep=",", 
+                            col.names=c("lagoslakeid",     
+                                        "hu4_zoneid",     
+                                        "iws_zoneid",     
+                                        "nhd_lat",     
+                                        "nhd_long",     
+                                        "lake_area_ha",     
+                                        "maxdepth",     
+                                        "iws_areaha",     
+                                        "lakeconnectivity",     
+                                        "iws_slope_mean",     
+                                        "iws_urban",     
+                                        "iws_crop",     
+                                        "iws_pasture",     
+                                        "iws_forest",     
+                                        "iws_lakes_lakes4ha_overlapping_area_pct",     
+                                        "iws_lakes_lakes4ha_isolated_overlapping_area_pct",     
+                                        "iws_lakes_lakes4ha_drlakestream_overlapping_area_pct",     
+                                        "iws_streamdensity_headwaters_density_mperha",     
+                                        "iws_streamdensity_midreaches_density_mperha",     
+                                        "iws_streamdensity_rivers_density_mperha",     
+                                        "hu4_baseflowindex_mean",     
+                                        "hu4_runoff_mean",     
+                                        "hu4_dep_totaln_1990_mean",     
+                                        "hu4_dep_totaln_2010_mean",     
+                                        "hu4_dep_change",     
+                                        "hu4_prism_ppt_30yr_normal_800mm2_annual_mean",     
+                                        "hu4_prism_tmean_30yr_normal_800mm2_annual_mean",     
+                                        "hu4_tmean_1990",     
+                                        "hu4_tmean_2011",     
+                                        "hu4_tmean_change",     
+                                        "hu4_ppt_1990",     
+                                        "hu4_ppt_2011",     
+                                        "hu4_ppt_change",     
+                                        "hu4_damdensity_pointspersqkm",     
+                                        "hu4_roaddensity_density_mperha",     
+                                        "hu4_slope_mean",     
+                                        "hu4_urban",     
+                                        "hu4_crop",     
+                                        "hu4_pasture",     
+                                        "hu4_forest",     
+                                        "hu4_lakes_lakes4ha_avgsize_ha",     
+                                        "hu4_lakes_lakes4ha_overlapping_area_pct",     
+                                        "hu4_lakes_lakes4ha_isolated_overlapping_area_pct",     
+                                        "hu4_lakes_lakes4ha_drlakestream_overlapping_area_pct",     
+                                        "hu4_latewisconsinglaciation_glaciation"), check.names=TRUE)
+
+# add categorical (increasing, decreasing, no change) trend data to
+# to lake.predictors
+
+temp = change.db.all[,c(1,14:17)]
+lake.predictors = merge(lake.predictors, temp, by = "lagoslakeid", all.x = TRUE)
+
+# get huc4 polygons from github, which was used as the regional spatial extent
+# may not work on macs - link to data:
+# https://github.com/limnoliver/CSI-Nutrient-Time-Series/tree/72c8269902e53c7ec6a2cfbe13a0239d13062dc8/Data
+
+load(url("https://github.com/limnoliver/CSI-Nutrient-Time-Series/blob/72c8269902e53c7ec6a2cfbe13a0239d13062dc8/Data/huc4.RData?raw=true"))
 
 # set colors for tn and tp
 col.tn = rgb(.94,.73,0.035,.7)
@@ -26,26 +107,17 @@ col.no.change = "darkgray"
 col.chl = rgb(163,25,255,max=255,alpha=178)
 
 #change to match the number of lakes in each database
-n.tn = 833
-n.tp = 2096
-n.tntp = 742
-n.chl = 2239
+n.tn = length(unique(change.db.all$lagoslakeid[change.db.all$variable == "tn_umol"]))
+n.tp = length(unique(change.db.all$lagoslakeid[change.db.all$variable == "tp_umol"]))
+n.tntp = length(unique(change.db.all$lagoslakeid[change.db.all$variable == "tn_tp_umol"]))
+n.chl = length(unique(change.db.all$lagoslakeid[change.db.all$variable == "chl_ugL"]))
 
 
 # =================================================
 # Figure 1
 # code that plots 8 maps: for each nutrient or chlorophyll response, 
 # plot the regional trend estimates and the lake-specific trend estimates.
-require(maps)
-require(maptools)
-require(rgdal)
-require(sp)
-require(ggplot2)
-library(colorspace)
 
-setwd("C:/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014")
-huc4 = readOGR(dsn ="/Users/Samantha/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014", layer = "HU4_simple_wgs1984")
-huc4 = readOGR(dsn = "/Users/skoliver/Dropbox/GEO-Shared2/MGD_Shapefile_Exports_to_map_in_R_May2014", layer = "HU4_simple_wgs1984")
 
 #function to extract regional random effects and add significance column for plotting
 map.data <- function(region.RE)  {
@@ -265,8 +337,8 @@ temp = change.db.all[!is.na(change.db.all$tn_coef_mean) & !is.na(change.db.all$c
 temp.tn = 100*temp$tn_coef_mean
 temp.chl = 100*temp$chl_coef_mean
 
-pdf("Chl_TN_TP_change.pdf")
-par(mar=c(5,5,1,1), mfrow=c(2,1), width = 4, height = 8)
+pdf("Chl_TN_change.pdf")
+par(mar=c(5,5,1,1))
 #tn positive, chl no change
 plot(temp.tn[temp$tn_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0],temp.chl[temp$tn_ymin > 0 & temp$chl_ymin < 0 & temp$chl_ymax > 0], 
      ylab = "% Change in Chl per year", 
@@ -326,10 +398,12 @@ abline(0,1)
 abline(h=0, col = col.chl, lwd = 3)
 abline(v=0, col = col.tn, lwd = 3)
 
+dev.off()
 
 # now plot chl vs TP
 
 # filter for lakes that have TP and Chl data
+pdf("Chl_TP_change.pdf")
 par(mar=c(5,5,1,1))
 temp = change.db.all[!is.na(change.db.all$tp_coef_mean) & !is.na(change.db.all$chl_coef_mean),]
 temp.tp = 100*temp$tp_coef_mean
@@ -431,7 +505,11 @@ dev.off()
 
 # ==========================================
 # Figure 4
-# create violin plots of important predictors identified by the rf
+# create violin plots of top trend predictors identified by the rf
+# this was "hu4_ppt_change for TP
+# "hu4_dep_totaln_1990_mean" for TN
+# "hu4_dep_change" for TN:TP
+# "hu4_tmean_1990" for chl
 
 quant.low = function(x){
   quantile(x,.25)
@@ -439,6 +517,7 @@ quant.low = function(x){
 quant.high = function(x){
   quantile(x,.75)
 }
+
 
 pdf("tp_top_var.pdf")
 #TP vs ppt change
@@ -518,14 +597,6 @@ ggplot(dat.keep, aes(x=chl_change, y=hu4_tmean_1990/100, fill=chl_change)) +
   theme(axis.text.x=element_text(margin=margin(2,2,4,3,"pt")))
 dev.off()
 
-
-########################
-# filling in summary tables
-##########################
-
-## extract model coefficients
-change.db.tntp[[4]][2,2] - (qnorm(.975)*change.db.tntp[[4]][2,4])
-change.db.tntp[[4]][2,2] + (qnorm(.975)*change.db.tntp[[4]][2,4])
 
 
 
