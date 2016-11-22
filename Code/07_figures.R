@@ -636,24 +636,32 @@ med = data.frame(lagoslakeid = attributes(med)$dimnames$lagoslakeid,
 
 dat.char = merge(dat.char, med, by = "lagoslakeid", all.x = TRUE)
 
+meanval = by(all.nut[,c(3)], INDICES = all.nut[,c(4,1)], FUN = mean)
+meanval = data.frame(lagoslakeid = attributes(meanval)$dimnames$lagoslakeid, 
+                 tn_meanval = meanval[3,], 
+                 tp_meanval = meanval[4,],
+                 tntp_meanval = meanval[2,], 
+                 chl_meanval = meanval[1,])
+
+dat.char = merge(dat.char, meanval, by = "lagoslakeid", all.x = TRUE)
 
 # create a 4x3 panel that shows all responses ~ mean value/med year/nobs
 pdf("response_vs_modelvals_boxplot.pdf", height = 7, width = 10)
 par(mfrow = c(3,4), oma = c(4,3,0,0), mar = c(2,2,1,1))
-boxplot(log(tn_meanval)~tn_change, data = lake.predictors, xaxt = "n")
-boxplot(log(tp_meanval)~tp_change, data = lake.predictors, xaxt = "n")
-boxplot(log(tntp_meanval)~tntp_change, data = lake.predictors, xaxt = "n")
-boxplot(log(chl_meanval)~chl_change, data = lake.predictors, xaxt = "n")
+boxplot(log(tn_meanval)~tn_change, data = dat.char, xaxt = "n")
+boxplot(log(tp_meanval)~tp_change, data = dat.char, xaxt = "n")
+boxplot(log(tntp_meanval)~tntp_change, data = dat.char, xaxt = "n")
+boxplot(log(chl_meanval)~chl_change, data = dat.char, xaxt = "n")
 
-boxplot(tn_medyear~tn_change, data = lake.predictors, xaxt = "n")
-boxplot(tp_medyear~tp_change, data = lake.predictors, xaxt = "n")
-boxplot(tntp_medyear~tntp_change, data = lake.predictors, xaxt = "n")
-boxplot(chl_medyear~chl_change, data = lake.predictors, xaxt = "n")
+boxplot(tn_medyear~tn_change, data = dat.char, xaxt = "n")
+boxplot(tp_medyear~tp_change, data = dat.char, xaxt = "n")
+boxplot(tntp_medyear~tntp_change, data = dat.char, xaxt = "n")
+boxplot(chl_medyear~chl_change, data = dat.char, xaxt = "n")
 
-boxplot(tn_nyear~tn_change, data = lake.predictors, xlab = "TN Change")
-boxplot(tp_nyear~tp_change, data = lake.predictors, xlab = "TP Change")
-boxplot(tntp_nyear~tntp_change, data = lake.predictors, xlab = "TN:TP Change")
-boxplot(chl_nyear~chl_change, data = lake.predictors, "Chl Change")
+boxplot(tn_nyear~tn_change, data = dat.char, xlab = "TN Change")
+boxplot(tp_nyear~tp_change, data = dat.char, xlab = "TP Change")
+boxplot(tn_tp_nyear~tntp_change, data = dat.char, xlab = "TN:TP Change")
+boxplot(chl_nyear~chl_change, data = dat.char, "Chl Change")
 
 mtext("TN Change", side=1, line = 2, adj=0.11, outer = TRUE)
 mtext("TP Change", side=1, line = 2, adj=0.38, outer = TRUE)
