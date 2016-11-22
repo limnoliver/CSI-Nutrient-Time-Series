@@ -20,18 +20,14 @@ library(randomForest)
 
 infile1  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/e955b964c44276632edd9f3629022077" 
 infile1 <- sub("^https","http",infile1) 
-all.nut.data <-read.csv(infile1,header=F 
-               ,skip=1
-               ,sep=","  
-               , col.names=c(
-                 "lagoslakeid",     
-                 "sampleyear",     
-                 "value",     
-                 "variable"    ), check.names=TRUE)
+all.nut.data <-read.csv(infile1, header=F, skip=1, sep=",",  
+                        col.names=c("lagoslakeid",     
+                                    "sampleyear",     
+                                    "value",     
+                                    "variable"), check.names=TRUE)
 
 
-# Fix any interval or ratio columns mistakenly read in as nominal 
-# and nominal columns read as numeric or dates read as strings
+# Fix any interval or ratio columns mistakenly read in as nominal and nominal columns read as numeric or dates read as strings
 
 if (class(all.nut.data$lagoslakeid)!="factor") all.nut.data$lagoslakeid<- as.factor(all.nut.data$lagoslakeid)
 if (class(all.nut.data$value)=="factor") all.nut.data$value <-as.numeric(levels(all.nut.data$value))[as.integer(all.nut.data$value) ]
@@ -51,13 +47,54 @@ data.chl = subset(all.nut.data, all.nut.data$variable == "chl_ugL")
 # merge data with HUC 4 regions
 # modify below code to source LTER geo data
 
-setwd("C:/Users/Samantha/Dropbox/CSI-LIMNO_DATA/LAGOSGeoData/LAGOS_VER1.03")
-lake.info = read.table("lagoslakes_10400.txt", header = TRUE,
-                  sep = "\t", 
-                  quote = "", 
-                  dec = ".", 
-                  strip.white = TRUE, 
-                  comment.char = "")
+infile2  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/cc35382bc48fc688750d0c358167f3e1" 
+infile2 <- sub("^https","http",infile2) 
+lake.info <-read.csv(infile2,header=F, skip=1, sep=",", 
+                           col.names=c("lagoslakeid",     
+                                       "hu4_zoneid",     
+                                       "iws_zoneid",     
+                                       "nhd_lat",     
+                                       "nhd_long",     
+                                       "lake_area_ha",     
+                                       "maxdepth",     
+                                       "iws_areaha",     
+                                       "lakeconnectivity",     
+                                       "iws_slope_mean",     
+                                       "iws_urban",     
+                                       "iws_crop",     
+                                       "iws_pasture",     
+                                       "iws_forest",     
+                                       "iws_lakes_lakes4ha_overlapping_area_pct",     
+                                       "iws_lakes_lakes4ha_isolated_overlapping_area_pct",     
+                                       "iws_lakes_lakes4ha_drlakestream_overlapping_area_pct",     
+                                       "iws_streamdensity_headwaters_density_mperha",     
+                                       "iws_streamdensity_midreaches_density_mperha",     
+                                       "iws_streamdensity_rivers_density_mperha",     
+                                       "hu4_baseflowindex_mean",     
+                                       "hu4_runoff_mean",     
+                                       "hu4_dep_totaln_1990_mean",     
+                                       "hu4_dep_totaln_2010_mean",     
+                                       "hu4_dep_change",     
+                                       "hu4_prism_ppt_30yr_normal_800mm2_annual_mean",     
+                                       "hu4_prism_tmean_30yr_normal_800mm2_annual_mean",     
+                                       "hu4_tmean_1990",     
+                                       "hu4_tmean_2011",     
+                                       "hu4_tmean_change",     
+                                       "hu4_ppt_1990",     
+                                       "hu4_ppt_2011",     
+                                       "hu4_ppt_change",     
+                                       "hu4_damdensity_pointspersqkm",     
+                                       "hu4_roaddensity_density_mperha",     
+                                       "hu4_slope_mean",     
+                                       "hu4_urban",     
+                                       "hu4_crop",     
+                                       "hu4_pasture",     
+                                       "hu4_forest",     
+                                       "hu4_lakes_lakes4ha_avgsize_ha",     
+                                       "hu4_lakes_lakes4ha_overlapping_area_pct",     
+                                       "hu4_lakes_lakes4ha_isolated_overlapping_area_pct",     
+                                       "hu4_lakes_lakes4ha_drlakestream_overlapping_area_pct",     
+                                       "hu4_latewisconsinglaciation_glaciation"), check.names=TRUE)
 
 data.tn = merge(data.tn, lake.info[,c("lagoslakeid", "hu4_zoneid")])
 data.tp = merge(data.tp, lake.info[,c("lagoslakeid", "hu4_zoneid")])
@@ -276,31 +313,4 @@ change.db.all$chl_change[change.db.all$chl_ymin>0] = "increasing"
 change.db.all$chl_change = as.factor(change.db.all$chl_change)
 
 write.table(change.db.all, "lmer_change_db.txt")
-
-# create dataframe with all region slopes (TP, TN, CHL, TNTP)
-# for fig generation
-
-temp.tn = change.db.tn[[2]][,c(1,2,6,8,9)]
-names(temp.tn)[3:5] = c("tn_coef_mean", "tn_ymin", "tn_ymax")
-
-temp.tp = change.db.tp[[2]][,c(1,2,6,8,9)]
-names(temp.tp)[3:5] = c("tp_coef_mean", "tp_ymin", "tp_ymax")
-
-temp.chl = change.db.chl[[2]][,c(1,2,6,8,9)]
-names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
-
-temp.tntp = change.db.tntp[[2]][,c(1,2,6,8,9)]
-names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
-
-change.db.region = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(1,3,4,5)], temp.tp[temp.tp$term=="sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
-change.db.region = merge(change.db.region, temp.chl[temp.chl$term == "sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
-
-change.db.region = merge(change.db.region, temp.tntp[temp.tntp$term == "sampleyear_cor",c(1,3,4,5)], by = "hu4_zoneid", all = TRUE)
-
-
-
-
-
-
-
 
