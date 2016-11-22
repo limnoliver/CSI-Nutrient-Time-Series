@@ -600,56 +600,6 @@ dev.off()
 
 
 
-###################################
-###################################
-
-pdf("response_vs_modelvals.pdf")
-par(mfcol = c(4,3), oma = c(4,3,0,0), mar = c(2,1,2,1))
-plot(tn_coef_mean~log(tn_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
-abline(h=0, col = "red")
-x = log(lake.predictors$tn_meanval[!is.na(lake.predictors$tn_meanval)])
-y = lake.predictors$tn_coef_mean[!is.na(lake.predictors$tn_coef_mean)]
-test = lowess(x= x, y=y)
-lines(lowess(x,y), col = "yellow")
-plot(tp_coef_mean~log(tp_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
-abline(h=0, col = "red")
-plot(tntp_coef_mean~log(tntp_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
-abline(h=0, col = "red")
-plot(chl_coef_mean~log(chl_meanval), data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=150))
-abline(h=0, col = "red")
-
-
-plot(tn_coef_mean~tn_medyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
-abline(h=0, col = "red")
-axis(side=2,labels=F) 
-plot(tp_coef_mean~tp_medyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
-abline(h=0, col = "red")
-axis(side=2,labels=F) 
-plot(tntp_coef_mean~tntp_medyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
-abline(h=0, col = "red")
-axis(side=2,labels=F) 
-plot(chl_coef_mean~chl_medyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
-abline(h=0, col = "red")
-axis(side=2,labels=F) 
-
-plot(tn_coef_mean~tn_nyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
-abline(h=0, col = "red")
-axis(side=2,labels=F) 
-plot(tp_coef_mean~tp_nyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
-abline(h=0, col = "red")
-axis(side=2,labels=F) 
-plot(tntp_coef_mean~tntp_nyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
-abline(h=0, col = "red")
-axis(side=2,labels=F) 
-plot(chl_coef_mean~chl_nyear, data = lake.predictors, pch = 21, bg = rgb(130,130,130,max=255,alpha=100), yaxt = "n")
-abline(h=0, col = "red")
-axis(side=2,labels=F) 
-mtext("TN Change", side=2, line = 1, adj=0.91, outer = TRUE)
-mtext("TP Change", side=2, line = 1, adj=0.64, outer = TRUE)
-mtext("TN:TP Change", side=2, line = 1, adj=0.35, outer = TRUE)
-mtext("Chl Change", side=2, line = 1, adj=0.07, outer = TRUE)
-
-mtext("log Mean Value", side = 1, line = 0, adj=.14, outer = TRUE, padj = 1)
-mtext("Median Obs. Year", side = 1, line = 0, adj=.52, outer = TRUE, padj = 1)
-mtext("N Years", side = 1, line = 0, adj=.88, outer = TRUE, padj = 1)
-dev.off()
+# ==========================================
+# Figure S2
+# show lake-specific trend values vs various data characteristics
