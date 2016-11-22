@@ -619,6 +619,23 @@ temp = count(all.nut[all.nut$variable=="tp_umol", ], vars = "lagoslakeid")
 names(temp)[2] = "tp_nyear"
 dat.char = merge(dat.char, temp, by = "lagoslakeid", all.x = TRUE)
 
+temp = count(all.nut[all.nut$variable=="tn_tp_umol", ], vars = "lagoslakeid")
+names(temp)[2] = "tn_tp_nyear"
+dat.char = merge(dat.char, temp, by = "lagoslakeid", all.x = TRUE)
+
+temp = count(all.nut[all.nut$variable=="chl_ugL", ], vars = "lagoslakeid")
+names(temp)[2] = "chl_nyear"
+dat.char = merge(dat.char, temp, by = "lagoslakeid", all.x = TRUE)
+
+med = by(all.nut[,c(2)], INDICES = all.nut[,c(4,1)], FUN = median)
+med = data.frame(lagoslakeid = attributes(med)$dimnames$lagoslakeid, 
+                 tn_medyear = med[3,], 
+                 tp_medyear = med[4,],
+                 tntp_medyear = med[2,], 
+                 chl_medyear = med[1,])
+
+dat.char = merge(dat.char, med, by = "lagoslakeid", all.x = TRUE)
+
 
 # create a 4x3 panel that shows all responses ~ mean value/med year/nobs
 pdf("response_vs_modelvals_boxplot.pdf", height = 7, width = 10)
