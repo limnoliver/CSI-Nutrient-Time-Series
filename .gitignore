@@ -4,3 +4,4 @@
 Bayes code/
 *.pdf
 !Data/
+!huc4.RData
