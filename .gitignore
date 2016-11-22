@@ -3,3 +3,4 @@
 *.RData
 Bayes code/
 *.pdf
+!Data/
