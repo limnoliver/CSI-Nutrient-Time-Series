@@ -2,16 +2,7 @@ require(ggplot2)
 library(RColorBrewer)
 library(maps)
 require(akima)
-
-
-install.packages("mapproj")
-library(mapproj)
-require(maps)
-require(maptools)
 require(rgdal)
-require(sp)
-require(ggplot2)
-library(colorspace)
 
 # ===============================================
 # PURPOSE:
