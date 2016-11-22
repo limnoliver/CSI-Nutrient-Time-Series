@@ -3,7 +3,6 @@ library(lme4)
 library(RLRsim)
 library(merTools)
 library(arm)
-library(randomForest)
 
 # ===============================================
 # PURPOSE:
