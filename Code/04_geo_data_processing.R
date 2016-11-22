@@ -70,7 +70,7 @@ geo.data = merge(lakes, iws.lulc, by = "lagoslakeid", all.x = TRUE)
 
 infile1  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/320/4/4a283c25f3548c0f78d8a01658e4a353" 
 infile1 <- sub("^https","http",infile1) 
-depths <-read.csv(infile1,header=F, skip=1, sep=",", 
+depths <- read.csv(infile1,header=F, skip=1, sep=",", 
                  col.names=c(
                  "lagoslakeid",     
                  "nhdid",     
