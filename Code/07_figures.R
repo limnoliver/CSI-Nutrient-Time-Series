@@ -601,7 +601,8 @@ dev.off()
 # ==========================================
 # Supplmental figures
 
-# Figure S2
+# ==========================================
+# Figure S1
 # show lake-specific categorical trends vs various data characteristics
 
 # first calculate variables of interest from raw data
@@ -671,5 +672,40 @@ mtext("Chl Change", side=1, line = 2, adj=0.92, outer = TRUE)
 mtext("log Mean Value", side = 2, line = 1, adj=.9, outer = TRUE, padj = 1)
 mtext("Median Obs. Year", side = 2, line = 1, adj=.5, outer = TRUE, padj = 1)
 mtext("N Years", side = 2, line = 1, adj=.14, outer = TRUE, padj = 1)
+
+dev.off()
+
+# =============================
+# Figure S2
+
+# add chlorophyll trend vals to dat.char
+dat.char = merge(dat.char, change.db.all[,c("lagoslakeid", "chl_coef_mean")], by = "lagoslakeid", all.x = TRUE)
+dat = dat.char[!is.na(dat.char$tn_meanval) & !is.na(dat.char$tp_meanval)& !is.na(dat.char$chl_coef_mean),]
+dat = data.frame(x = log10(dat$tp_meanval), y = log10(dat$tn_meanval), z = dat$chl_coef_mean*100)
+
+
+dat.m = interp(x = dat$x, y = dat$y, z = dat$z, linear = TRUE, 
+               extrap = FALSE, duplicate = "mean")
+
+# Create contour plot
+
+png("Nutrients_cont_Chl_contour.png", height = 1200, width = 1200, pointsize = 20)
+par(mar=c(5,5,3,0),cex = 1.2, cex.lab = 2.5, cex.axis = 2,oma=c(0,1,0,0))
+filled.contour(x = dat.m$x,
+               y = dat.m$y, 
+               z = dat.m$z,
+               levels = c(-10,-7,-4,-3,-2,-1,0,1,2,3,4,7,10),
+               col = c("#031932",rev(brewer.pal(10, name = "RdBu")),"#400114"),
+               #color.palette = colorRampPalette(c(rgb(5,48,97,max=255), rgb(255,255,255,max=255),rgb(103,0,31,max=255))), 
+               xlab = "log TP (uM)",
+               ylab = "log TN (uM)", 
+               key.title = title(main = "% Change in \nChl Per Year", cex.main = 1.1))
+#key.axes = axis(5, at = c(-1,0,1), labels = c(0.1, 1, 10)))
+lines(x = c(-6.45, 3.2), y = c(0,0),  lwd = 4, lty = 2)
+lines(x = c(-1.24,-1.24), y = c(-4.09,2.485),  lwd = 4, lty = 2)
+text(labels = "n = 51", x = -6.1, y = 2.3, cex = 2, adj = 0)
+text(labels = "n = 93", x = -1, y = 2.3, cex = 2, adj = 0)
+text(labels = "n = 201", x = 1.1, y = -3.8, cex = 2, adj = 0)
+text(labels = "n = 316", x = -6.1, y = -3.8, cex = 2, adj = 0)
 
 dev.off()
