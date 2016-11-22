@@ -15,9 +15,55 @@ require(plyr)
 # get geo predictor data
 # change to LTER data source when posted, for now:
 
+infile2  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/cc35382bc48fc688750d0c358167f3e1" 
+infile2 <- sub("^https","http",infile2) 
+lake.predictors <- read.csv(infile2,header=F, skip=1, sep=",", 
+                            col.names=c("lagoslakeid",     
+                                        "hu4_zoneid",     
+                                        "iws_zoneid",     
+                                        "nhd_lat",     
+                                        "nhd_long",     
+                                        "lake_area_ha",     
+                                        "maxdepth",     
+                                        "iws_areaha",     
+                                        "lakeconnectivity",     
+                                        "iws_slope_mean",     
+                                        "iws_urban",     
+                                        "iws_crop",     
+                                        "iws_pasture",     
+                                        "iws_forest",     
+                                        "iws_lakes_lakes4ha_overlapping_area_pct",     
+                                        "iws_lakes_lakes4ha_isolated_overlapping_area_pct",     
+                                        "iws_lakes_lakes4ha_drlakestream_overlapping_area_pct",     
+                                        "iws_streamdensity_headwaters_density_mperha",     
+                                        "iws_streamdensity_midreaches_density_mperha",     
+                                        "iws_streamdensity_rivers_density_mperha",     
+                                        "hu4_baseflowindex_mean",     
+                                        "hu4_runoff_mean",     
+                                        "hu4_dep_totaln_1990_mean",     
+                                        "hu4_dep_totaln_2010_mean",     
+                                        "hu4_dep_change",     
+                                        "hu4_prism_ppt_30yr_normal_800mm2_annual_mean",     
+                                        "hu4_prism_tmean_30yr_normal_800mm2_annual_mean",     
+                                        "hu4_tmean_1990",     
+                                        "hu4_tmean_2011",     
+                                        "hu4_tmean_change",     
+                                        "hu4_ppt_1990",     
+                                        "hu4_ppt_2011",     
+                                        "hu4_ppt_change",     
+                                        "hu4_damdensity_pointspersqkm",     
+                                        "hu4_roaddensity_density_mperha",     
+                                        "hu4_slope_mean",     
+                                        "hu4_urban",     
+                                        "hu4_crop",     
+                                        "hu4_pasture",     
+                                        "hu4_forest",     
+                                        "hu4_lakes_lakes4ha_avgsize_ha",     
+                                        "hu4_lakes_lakes4ha_overlapping_area_pct",     
+                                        "hu4_lakes_lakes4ha_isolated_overlapping_area_pct",     
+                                        "hu4_lakes_lakes4ha_drlakestream_overlapping_area_pct",     
+                                        "hu4_latewisconsinglaciation_glaciation"), check.names=TRUE)
 
-lake.predictors = read.csv("LAGOS_supporting_geophysical.csv", header = TRUE)
-head(lake.predictors)
 
 # source data created from running '05_analysis_hlm'
 change.db.all = read.table("lmer_change_db.txt")
