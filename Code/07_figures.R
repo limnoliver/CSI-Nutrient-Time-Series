@@ -708,5 +708,77 @@ text(labels = "n = 316", x = -6.1, y = -3.8, cex = 2, adj = 0)
 
 dev.off()
 
+# create histograms of LULC and size of census vs sample
+# note I converted counts to proportions in each bin
+
+# first, % ag which is crops + pasture
 
 
+pdf("sample_vs_population_hist.pdf")
+
+par(mfrow=c(2,2), cex = 1,mar=c(3,3,0.5,0.5))
+iws.ag = dt$iws.lulc$iws_nlcd2001_pct_81 + dt$iws.lulc$iws_nlcd2001_pct_82
+
+h = hist(iws.ag, plot = FALSE)
+h$density = h$counts/sum(h$counts)
+iws.ag.sample = lake.predictors$iws_crop + lake.predictors$iws_pasture
+h2 = hist(iws.ag.sample, breaks = 20, plot = FALSE)
+h2$density = h2$counts/sum(h2$counts)
+
+plot(h, freq = FALSE, ylab = "Proportion of Lakes", 
+     xlab = "% Agriculture", col = "gray", main = "",
+     mar=c(2,2,0,0),oma=c(0,0,0,0), mgp=c(2,.5,0))
+plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
+legend("topright",
+       c("Census", "Sample"),
+       fill = c("gray", rgb(106,90,205,alpha=178,max=255)))
+# next, urban, which I used as low, medium and high developed categories
+iws.urban = dt$iws.lulc$iws_nlcd2001_pct_21 + dt$iws.lulc$iws_nlcd2001_pct_22+ dt$iws.lulc$iws_nlcd2001_pct_23
+h = hist(iws.urban, breaks = 20, plot = FALSE)
+h$density = h$counts/sum(h$counts)
+iws.urban.sample = lake.predictors$iws_urban
+h2 = hist(iws.urban.sample, breaks = 20, plot = FALSE)
+h2$density = h2$counts/sum(h2$counts)
+
+plot(h, freq = FALSE, ylab = "", 
+     xlab = "% Urban", col = "gray", ylim = c(0, 0.8), main = "",
+     mar=c(2,2,0,0), mgp=c(2,.5,0),oma=c(0,0,0,0))
+plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
+
+# now add urban and ag
+iws.human = iws.ag + iws.urban
+h = hist(iws.human, breaks = 20, plot = FALSE)
+h$density = h$counts/sum(h$counts)
+iws.human.sample = iws.ag.sample + iws.urban.sample
+h2 = hist(iws.human.sample, breaks = 20, plot = FALSE)
+h2$density = h2$counts/sum(h2$counts)
+
+plot(h, freq = FALSE, ylab = "Proportion of Lakes", 
+     xlab = "% Urban + Agriculture", col = "gray", 
+     ylim = c(0, 0.3), main = "",
+     mar=c(2,2,0,0), mgp=c(2,.5,0),oma=c(0,0,0,0))
+plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
+
+# next, forest, which I calculate as mixed + hardwood + deciduous
+iws.forest = dt$iws.lulc$iws_nlcd2001_pct_41 + dt$iws.lulc$iws_nlcd2001_pct_42 + dt$iws.lulc$iws_nlcd2001_pct_43
+h = hist(iws.forest, breaks = 20, plot = FALSE)
+h$density = h$counts/sum(h$counts)
+iws.forest.sample = lake.predictors$iws_forest
+h2 = hist(iws.urban.sample, breaks = 20, plot = FALSE)
+h2$density = h2$counts/sum(h2$counts)
+
+plot(h, freq = FALSE, ylab = "", 
+     xlab = "% Forest", col = "gray", ylim = c(0, 0.8),
+     main = "",
+     mar=c(2,2,0,0),oma=c(0,0,0,0), mgp=c(2,.5,0))
+plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
+
+dev.off()
+# find minimally disturbed lakes
+min.dist = data.frame(lake.no = c(1:2913),
+                      low.ag = c(1:2913) %in% ag.low,
+                      low.urban = c(1:2913) %in% urban.low,
+                      low.road =  c(1:2913) %in% roads.low)
+for (i in 1:2913){
+  min.dist$true[i] = sum(min.dist[i,c(2:4)]==TRUE)
+}
