@@ -188,24 +188,29 @@ pdf("all_blups.pdf")
 
 par(mfcol=c(4,2), cex = 1)
 par(mar = c(0,0,0,0))
-plot(huc4,col=get.col.bins(huc4$tn_slope), lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
-plot(huc4[which(huc4$tn_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
 
-plot(huc4,col=get.col.bins(huc4$tp_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
-plot(huc4[which(huc4$tp_sig==TRUE),], lty = 1, lwd=3,border=TRUE, add = TRUE)
+plot(huc4, lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
+plot(huc4[which(huc4$tn_sig==FALSE),],col="lightgray", lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0), add = TRUE)
+plot(huc4[which(huc4$tn_sig==TRUE),],col=get.col.bins(huc4$tn_slope)[which(huc4$tn_sig==TRUE)], lty = 1, lwd=1,border=TRUE, add = TRUE)
 
-plot(huc4,col=get.col.bins(huc4$tntp_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1),oma=c(0,0,0,0))
-plot(huc4[which(huc4$tntp_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
+plot(huc4, lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
+plot(huc4[which(huc4$tp_sig==FALSE),],col="lightgray", lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0), add = TRUE)
+plot(huc4[which(huc4$tp_sig==TRUE),], col=get.col.bins(huc4$tp_slope)[which(huc4$tp_sig==TRUE)], lty = 1, lwd=1,border=TRUE, add = TRUE)
 
-plot(huc4,col=get.col.bins(huc4$chl_slope), lty = 1, lwd=1,border=TRUE,mar=c(1,1,1,1))
-plot(huc4[which(huc4$chl_sig==TRUE),], lty = 1, lwd=3,border=TRUE,  add = TRUE)
+plot(huc4, lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
+plot(huc4[which(huc4$tntp_sig==FALSE),],col="lightgray", lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0), add = TRUE)
+plot(huc4[which(huc4$tntp_sig==TRUE),], col=get.col.bins(huc4$tntp_slope)[which(huc4$tntp_sig==TRUE)],lty = 1, lwd=1,border=TRUE,  add = TRUE)
+
+plot(huc4, lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
+plot(huc4[which(huc4$chl_sig==FALSE),],col="lightgray", lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0), add = TRUE)
+plot(huc4[which(huc4$chl_sig==TRUE),], col=get.col.bins(huc4$chl_slope)[which(huc4$chl_sig==TRUE)], lty = 1, lwd=1,border=TRUE,  add = TRUE)
 
 # plot lake-specific trends
 
 #function to extract lake BLUPS
 lake.map.data <- function(lake.RE)  {
   dat <- lake.RE[[1]][lake.RE[[1]]$term == "sampleyear_cor",c("lagoslakeid", "coef_mean", "ymin", "ymax")]
-
+  
   # add column that say whether the change value is different from zero
   for (i in 1:nrow(dat)){
     if (dat$ymin[i] > 0|dat$ymax[i]<0) {
@@ -225,10 +230,10 @@ temp.chl = lake.map.data(change.db.chl)
 
 #tn plot
 map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","Missouri",
-                                 "Indiana","Michigan","Ohio", "Pennsylvania","New York",
-                                 "New Jersey", "Connecticut","Rhode Island","Massachusetts",
-                                 "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,0),oma=c(0,0,0,0))
-points(temp.tn$nhd_long[which(temp.tn$sig==FALSE)], temp.tn$nhd_lat[which(temp.tn$sig==FALSE)], col = get.col.bins(temp.tn$coef_mean[which(temp.tn$sig==FALSE)], 200), pch = 16)
+                                  "Indiana","Michigan","Ohio", "Pennsylvania","New York",
+                                  "New Jersey", "Connecticut","Rhode Island","Massachusetts",
+                                  "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,0),oma=c(0,0,0,0))
+points(temp.tn$nhd_long[which(temp.tn$sig==FALSE)], temp.tn$nhd_lat[which(temp.tn$sig==FALSE)],bg = rgb(220,220,220,max=255,alpha=178), col = rgb(180,180,180,max=255,alpha=178), pch=21)
 points(temp.tn$nhd_long[which(temp.tn$sig==TRUE)], temp.tn$nhd_lat[which(temp.tn$sig==TRUE)], 
        bg = get.col.bins(temp.tn$coef_mean[which(temp.tn$sig==TRUE)], 200), 
        pch = 21, col = "black" ,lwd = 1)
@@ -237,7 +242,7 @@ map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","
                                   "Indiana","Michigan","Ohio", "Pennsylvania","New York",
                                   "New Jersey", "Connecticut","Rhode Island","Massachusetts",
                                   "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,1),oma=c(0,0,0,0))
-points(temp.tp$nhd_long[which(temp.tp$sig==FALSE)], temp.tp$nhd_lat[which(temp.tp$sig==FALSE)], col = get.col.bins(temp.tp$coef_mean[which(temp.tp$sig==FALSE)], 200), pch = 16)
+points(temp.tp$nhd_long[which(temp.tp$sig==FALSE)], temp.tp$nhd_lat[which(temp.tp$sig==FALSE)],bg = rgb(220,220,220,max=255,alpha=178), col = rgb(180,180,180,max=255,alpha=178), pch=21)
 points(temp.tp$nhd_long[which(temp.tp$sig==TRUE)], temp.tp$nhd_lat[which(temp.tp$sig==TRUE)], 
        bg = get.col.bins(temp.tp$coef_mean[which(temp.tp$sig==TRUE)], 200), 
        pch = 21, col = "black" ,lwd = 1)
@@ -246,7 +251,7 @@ map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","
                                   "Indiana","Michigan","Ohio", "Pennsylvania","New York",
                                   "New Jersey", "Connecticut","Rhode Island","Massachusetts",
                                   "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,1),oma=c(0,0,0,0))
-points(temp.tntp$nhd_long[which(temp.tntp$sig==FALSE)], temp.tntp$nhd_lat[which(temp.tntp$sig==FALSE)], col = get.col.bins(temp.tntp$coef_mean[which(temp.tntp$sig==FALSE)], 200), pch = 16)
+points(temp.tntp$nhd_long[which(temp.tntp$sig==FALSE)], temp.tntp$nhd_lat[which(temp.tntp$sig==FALSE)],bg = rgb(220,220,220,max=255,alpha=178), col = rgb(180,180,180,max=255,alpha=178), pch=21)
 points(temp.tntp$nhd_long[which(temp.tntp$sig==TRUE)], temp.tntp$nhd_lat[which(temp.tntp$sig==TRUE)], 
        bg = get.col.bins(temp.tntp$coef_mean[which(temp.tntp$sig==TRUE)], 200), 
        pch = 21, col = "black" ,lwd = 1)
@@ -256,12 +261,14 @@ map(database = "state", regions=c("Minnesota", "Wisconsin", "Iowa", "Illinois","
                                   "Indiana","Michigan","Ohio", "Pennsylvania","New York",
                                   "New Jersey", "Connecticut","Rhode Island","Massachusetts",
                                   "Vermont", "New Hampshire","Maine"), fill = FALSE, lwd=1,mar=c(0,0,1,1),oma=c(0,0,0,0))
-points(temp.chl$nhd_long[which(temp.chl$sig==FALSE)], temp.chl$nhd_lat[which(temp.chl$sig==FALSE)], col = get.col.bins(temp.chl$coef_mean[which(temp.chl$sig==FALSE)], 200), pch = 16)
+points(temp.chl$nhd_long[which(temp.chl$sig==FALSE)], temp.chl$nhd_lat[which(temp.chl$sig==FALSE)],bg = rgb(220,220,220,max=255,alpha=178), col = rgb(180,180,180,max=255,alpha=178), pch=21)
 points(temp.chl$nhd_long[which(temp.chl$sig==TRUE)], temp.chl$nhd_lat[which(temp.chl$sig==TRUE)], 
        bg = get.col.bins(temp.chl$coef_mean[which(temp.chl$sig==TRUE)], 200), 
        pch = 21, col = "black" ,lwd = 1)
 
 dev.off()
+
+
 
 # ====================================================
 # Figure 2
@@ -700,3 +707,6 @@ text(labels = "n = 201", x = 1.1, y = -3.8, cex = 2, adj = 0)
 text(labels = "n = 316", x = -6.1, y = -3.8, cex = 2, adj = 0)
 
 dev.off()
+
+
+
