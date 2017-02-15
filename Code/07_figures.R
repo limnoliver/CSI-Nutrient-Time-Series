@@ -745,20 +745,6 @@ plot(h, freq = FALSE, ylab = "",
      mar=c(2,2,0,0), mgp=c(2,.5,0),oma=c(0,0,0,0))
 plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
 
-# now add urban and ag
-iws.human = iws.ag + iws.urban
-h = hist(iws.human, breaks = 20, plot = FALSE)
-h$density = h$counts/sum(h$counts)
-iws.human.sample = iws.ag.sample + iws.urban.sample
-h2 = hist(iws.human.sample, breaks = 20, plot = FALSE)
-h2$density = h2$counts/sum(h2$counts)
-
-plot(h, freq = FALSE, ylab = "Proportion of Lakes", 
-     xlab = "% Urban + Agriculture", col = "gray", 
-     ylim = c(0, 0.3), main = "",
-     mar=c(2,2,0,0), mgp=c(2,.5,0),oma=c(0,0,0,0))
-plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
-
 # next, forest, which I calculate as mixed + hardwood + deciduous
 iws.forest = dt$iws.lulc$iws_nlcd2001_pct_41 + dt$iws.lulc$iws_nlcd2001_pct_42 + dt$iws.lulc$iws_nlcd2001_pct_43
 h = hist(iws.forest, breaks = 20, plot = FALSE)
@@ -772,6 +758,8 @@ plot(h, freq = FALSE, ylab = "",
      main = "",
      mar=c(2,2,0,0),oma=c(0,0,0,0), mgp=c(2,.5,0))
 plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
+
+# 
 
 dev.off()
 # find minimally disturbed lakes
