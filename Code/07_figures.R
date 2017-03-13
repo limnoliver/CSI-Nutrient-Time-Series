@@ -291,11 +291,11 @@ points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin < 0 & temp$tp_y
        cex = 1.5, bg = rgb(254,254,254,max=255,alpha=178), pch=21)
 #TN up, TP up
 points(temp.tn[temp$tn_ymin > 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymin > 0 & temp$tp_ymin > 0],
-       col = "black", bg = col.both, pch=19, cex = 1.5)
+       col = "black", bg = col.both, pch=21, cex = 1.5)
 
 #TN down, TP down
 points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymax < 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymax < 0],
-       col = "black", bg = col.both, pch=19, cex = 1.5)
+       col = "black", bg = col.both, pch=21, cex = 1.5)
 
 #TN down, TP no change
 points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymin < 0 & temp$tp_ymax > 0],
@@ -311,7 +311,7 @@ points(temp.tn[temp$tn_ymin < 0 & temp$tn_ymax >0 & temp$tp_ymin>0]~temp.tp[temp
 
 #TN down, TP up
 points(temp.tn[temp$tn_ymax < 0 & temp$tp_ymin > 0]~temp.tp[temp$tn_ymax < 0 & temp$tp_ymin > 0],
-       col = "black", bg = col.both,  pch=19, cex = 1.5)
+       col = "black", bg = col.both,  pch=21, cex = 1.5)
 
 
 legend("bottomright",
@@ -722,7 +722,7 @@ iws.ag = dt$iws.lulc$iws_nlcd2001_pct_81 + dt$iws.lulc$iws_nlcd2001_pct_82
 h = hist(iws.ag, plot = FALSE)
 h$density = h$counts/sum(h$counts)
 iws.ag.sample = lake.predictors$iws_crop + lake.predictors$iws_pasture
-h2 = hist(iws.ag.sample, breaks = 20, plot = FALSE)
+h2 = hist(iws.ag.sample, breaks = h$breaks, plot = FALSE)
 h2$density = h2$counts/sum(h2$counts)
 
 plot(h, freq = FALSE, ylab = "Proportion of Lakes", 
@@ -737,7 +737,7 @@ iws.urban = dt$iws.lulc$iws_nlcd2001_pct_21 + dt$iws.lulc$iws_nlcd2001_pct_22+ d
 h = hist(iws.urban, breaks = 20, plot = FALSE)
 h$density = h$counts/sum(h$counts)
 iws.urban.sample = lake.predictors$iws_urban
-h2 = hist(iws.urban.sample, breaks = 20, plot = FALSE)
+h2 = hist(iws.urban.sample, breaks = h$breaks, plot = FALSE)
 h2$density = h2$counts/sum(h2$counts)
 
 plot(h, freq = FALSE, ylab = "", 
@@ -750,17 +750,33 @@ iws.forest = dt$iws.lulc$iws_nlcd2001_pct_41 + dt$iws.lulc$iws_nlcd2001_pct_42 +
 h = hist(iws.forest, breaks = 20, plot = FALSE)
 h$density = h$counts/sum(h$counts)
 iws.forest.sample = lake.predictors$iws_forest
-h2 = hist(iws.urban.sample, breaks = 20, plot = FALSE)
+h2 = hist(iws.urban.sample, breaks = h$breaks, plot = FALSE)
 h2$density = h2$counts/sum(h2$counts)
 
-plot(h, freq = FALSE, ylab = "", 
+plot(h, freq = FALSE, ylab = "Proportion of Lakes", 
      xlab = "% Forest", col = "gray", ylim = c(0, 0.8),
      main = "",
      mar=c(2,2,0,0),oma=c(0,0,0,0), mgp=c(2,.5,0))
 plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
 
-# 
+# lake size comparisons
+lakearea = dt$lagoslakes$lake_area_ha[dt$lagoslakes$lake_area_ha>1]
+h = hist(log10(lakearea), breaks = 25, plot = FALSE)
+h$density = h$counts/sum(h$counts)
+lakearea.sample = lake.predictors$lake_area_ha
+h2 = hist(log10(lakearea.sample), breaks = h$breaks, plot = FALSE)
+h2$density = h2$counts/sum(h2$counts)
 
+plot(h, freq = FALSE, ylab = "", 
+     xlab = "Lake Area (ha)", col = "gray", ylim = c(0, 0.3),
+     main = "",
+     mar=c(2,2,0,0),oma=c(0,0,0,0), mgp=c(2,.5,0), xaxt = "n")
+axis(1, 
+     labels = c("1", "10", expression(10^{2}), expression(10^{3}), expression(10^{4}), expression(10^{5}), expression(10^{6})), at = c(0,1,2,3,4,5,6),
+     mgp=c(2,.5,0))
+plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
+
+#
 dev.off()
 # find minimally disturbed lakes
 min.dist = data.frame(lake.no = c(1:2913),
