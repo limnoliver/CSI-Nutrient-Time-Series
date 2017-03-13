@@ -286,6 +286,26 @@ names(temp.tntp)[3:5] = c("tntp_coef_mean", "tntp_ymin", "tntp_ymax")
 temp.chl = change.db.chl[[1]][,c(2,3,11,13,14)]
 names(temp.chl)[3:5] = c("chl_coef_mean", "chl_ymin", "chl_ymax")
 
+#add intercepts to this to calculate mean intercept where change is negative
+tn_intercept = temp.tn[temp.tn$term=="(Intercept)", c(2,3)]
+tp_intercept = temp.tp[temp.tp$term=="(Intercept)", c(2,3)]
+names(tn_intercept)[2] = "tn_intercept"
+names(tp_intercept)[2] = "tp_intercept"
+
+abs = merge(change.db.all, tn_intercept , by = "lagoslakeid", all.x = TRUE)
+abs = merge(abs, lake.info[,c(1,26)], by = "lagoslakeid", all.x = TRUE)
+abs = merge(abs, tp_intercept, by = "lagoslakeid", all.x = TRUE)
+
+years.range <- function(x){
+  max(x)-min(x)
+}
+years <- tapply(all.data$sampleyear, INDEX = list(all.data$lagoslakeid, all.data$variable), FUN = years.range)
+years <- as.data.frame(years)
+years$lagoslakeid <- rownames(years)
+names(years)[1:4] = c("chl_years", "tntp_years", "tn_years", "tp_years")
+abs <-merge(abs, years, by = "lagoslakeid", all.x=TRUE)
+
+summary(abs$tn_intercept[abs$tn_change == "decreasing" & abs$state_name == "Iowa"])
 change.db.all = merge(temp.tn[temp.tn$term=="sampleyear_cor",c(2:5)], temp.tp[temp.tp$term=="sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
 change.db.all = merge(change.db.all, temp.chl[temp.chl$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
 change.db.all = merge(change.db.all, temp.tntp[temp.tntp$term == "sampleyear_cor",c(2:5)], by = "lagoslakeid", all = TRUE)
