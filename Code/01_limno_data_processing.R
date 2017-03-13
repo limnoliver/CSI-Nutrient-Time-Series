@@ -21,7 +21,7 @@ data.lake.specific = read.table("lagos_lakes_10541.txt",
 #Calculate TN from TKN
 data$tn_calculated = data$tkn + data$no2no3
 data$tn_combined = data$tn
-data$tn_combined[which(is.na(data$tn_combined) == TRUE)] = data$tn_calculated[which(is.na(data$tn_combined) == TRUE)]
+data$tn_combined[which(is.na(data$tn_combined))] = data$tn_calculated[which(is.na(data$tn_combined))]
 
 # create a data subset of TN, TP, CHL (independently) 
 # where there has to be TN, TP, or CHL observations
