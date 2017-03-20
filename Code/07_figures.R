@@ -192,22 +192,22 @@ par(mar = c(0,0,0,0))
 plot(huc4, lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tn_sig==FALSE),],col="lightgray", lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0), add = TRUE)
 plot(huc4[which(huc4$tn_sig==TRUE),],col=get.col.bins(huc4$tn_slope)[which(huc4$tn_sig==TRUE)], lty = 1, lwd=1,border=TRUE, add = TRUE)
-plot(huc4[which(is.na(huc4$tn_sig)),], density = 40,lty = 1, lwd=1,border=TRUE, add = TRUE)
+plot(huc4[which(is.na(huc4$tn_sig)),], col = "lightgray", density = 25,lty = 1, lwd=1,border="black", add = TRUE)
 
 plot(huc4, lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tp_sig==FALSE),],col="lightgray", lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0), add = TRUE)
 plot(huc4[which(huc4$tp_sig==TRUE),], col=get.col.bins(huc4$tp_slope)[which(huc4$tp_sig==TRUE)], lty = 1, lwd=1,border=TRUE, add = TRUE)
-plot(huc4[which(is.na(huc4$tp_sig)),], density = 40,lty = 1, lwd=1,border=TRUE, add = TRUE)
+plot(huc4[which(is.na(huc4$tp_sig)),], col = "lightgray", density = 25,lty = 1, lwd=1,border="black", add = TRUE)
 
 plot(huc4, lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$tntp_sig==FALSE),],col="lightgray", lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0), add = TRUE)
 plot(huc4[which(huc4$tntp_sig==TRUE),], col=get.col.bins(huc4$tntp_slope)[which(huc4$tntp_sig==TRUE)],lty = 1, lwd=1,border=TRUE,  add = TRUE)
-plot(huc4[which(is.na(huc4$tntp_sig)),], density = 40,lty = 1, lwd=1,border=TRUE, add = TRUE)
+plot(huc4[which(is.na(huc4$tntp_sig)),], col = "lightgray", density = 25,lty = 1, lwd=1,border="black", add = TRUE)
 
 plot(huc4, lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0))
 plot(huc4[which(huc4$chl_sig==FALSE),],col="lightgray", lty = 1, lwd=1,border=TRUE,mar=c(0,0,3,1),oma=c(0,0,0,0), add = TRUE)
 plot(huc4[which(huc4$chl_sig==TRUE),], col=get.col.bins(huc4$chl_slope)[which(huc4$chl_sig==TRUE)], lty = 1, lwd=1,border=TRUE,  add = TRUE)
-plot(huc4[which(is.na(huc4$chl_sig)),], density = 40,lty = 1, lwd=1,border=TRUE, add = TRUE)
+plot(huc4[which(is.na(huc4$chl_sig)),], col = "lightgray", density = 25,lty = 1, lwd=1,border="black", add = TRUE)
 
 # plot lake-specific trends
 
