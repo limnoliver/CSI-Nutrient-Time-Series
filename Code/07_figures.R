@@ -1,3 +1,5 @@
+# Appendix S3. Source code to reproduce all figures included in the manuscript. 
+
 require(ggplot2)
 library(RColorBrewer)
 library(maps)
@@ -672,7 +674,6 @@ plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
 
 #
 dev.off()
-
 
 # ===================================================================
 # Figure S2
