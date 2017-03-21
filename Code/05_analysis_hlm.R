@@ -1,3 +1,5 @@
+# Appendix S1. Source code to access published data and run the hierarchical linear models
+
 # load required packages
 library(lme4)
 library(RLRsim)
@@ -14,8 +16,7 @@ library(arm)
 # ================================================
 # Data import and cleaning
 
-# modify below code to source published LTER data
-# but for now, data will look like: 
+# read data from online repository
 
 infile1  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/e955b964c44276632edd9f3629022077" 
 infile1 <- sub("^https","http",infile1) 
@@ -44,7 +45,7 @@ data.tntp = subset(all.nut.data, all.nut.data$variable == "tn_tp_umol")
 data.chl = subset(all.nut.data, all.nut.data$variable == "chl_ugL")
 
 # merge data with HUC 4 regions
-# modify below code to source LTER geo data
+# get lake context data from online repository
 
 infile2  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/cc35382bc48fc688750d0c358167f3e1" 
 infile2 <- sub("^https","http",infile2) 
@@ -268,7 +269,8 @@ plotREsim(change.db.chl[[3]][change.db.chl[[3]]$term=="sampleyear_cor",])
 # e.g., what was done to get numbers for table 2
 
 change.db.tn[[4]][1,2] # tn intercept
-change.db.tn[[4]][1,2] # tn slope
+change.db.tn[[4]][2,2] # tn slope
+
 # calculate the number of lakes with tn trend < 0
 length(which(change.db.tn[[1]]$ymax[change.db.tn[[1]]$term == "sampleyear_cor"] < 0))
 
