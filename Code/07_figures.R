@@ -673,14 +673,9 @@ plot(h2, freq = FALSE, add = TRUE, col = rgb(106,90,205,alpha=178,max=255))
 #
 dev.off()
 
-# find minimally disturbed lakes
-min.dist = data.frame(lake.no = c(1:2913),
-                      low.ag = c(1:2913) %in% ag.low,
-                      low.urban = c(1:2913) %in% urban.low,
-                      low.road =  c(1:2913) %in% roads.low)
-for (i in 1:2913){
-  min.dist$true[i] = sum(min.dist[i,c(2:4)]==TRUE)
-}
+
+# ===================================================================
+# Figure S2
 # show lake-specific categorical trends vs various data characteristics
 
 # first calculate variables of interest from raw data
@@ -688,7 +683,6 @@ for (i in 1:2913){
 # median year of observation in each lake (Median Obs Year)
 # mean nutrient value per lake (log Mean Value)
 
-# 
 remove(temp)
 temp = count(all.nut[all.nut$variable=="tn_umol", ], vars = "lagoslakeid")
 names(temp)[2] = "tn_nyear"
@@ -754,7 +748,7 @@ mtext("N Years", side = 2, line = 1, adj=.14, outer = TRUE, padj = 1)
 dev.off()
 
 # =============================
-# Figure S2
+# Figure S3
 
 # add chlorophyll trend vals to dat.char
 dat.char = merge(dat.char, change.db.all[,c("lagoslakeid", "chl_coef_mean")], by = "lagoslakeid", all.x = TRUE)
