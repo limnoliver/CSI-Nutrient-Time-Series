@@ -1,3 +1,5 @@
+# Appendix S2. Source code to access published data and run the random forest analyses.
+
 require(randomForest)
 require(VSURF)
 require(plyr)
@@ -12,8 +14,7 @@ require(plyr)
 # ==============================================
 # gather predictor and response data
  
-# get geo predictor data
-# change to LTER data source when posted, for now:
+# get geo predictor data from online repository
 
 infile2  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-ntl/333/3/cc35382bc48fc688750d0c358167f3e1" 
 infile2 <- sub("^https","http",infile2) 
